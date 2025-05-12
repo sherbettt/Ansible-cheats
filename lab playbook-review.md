@@ -1,3 +1,5 @@
+Старт:
+1. `lab playbook-review start`
 
 ```bash
 [student@workstation playbook-review]$ cat ansible.cfg
@@ -69,3 +71,8 @@ serverb.lab.example.com
         status_code: 200
 ```
 
+Проверка: 
+1. `ansible-playbook --syntax-check  internet.yml`
+2. `ansible-playbook internet.yml`
+3. `lab playbook-review grade`
+4. `lab playbook-review finish`
