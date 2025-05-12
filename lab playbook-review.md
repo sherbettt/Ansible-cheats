@@ -18,7 +18,7 @@ serverb.lab.example.com
 ```
 
 
-Весь файл inventory выглядить так:
+Весь файл inventory (playbook) выглядить так:
 
 ```yaml
 ---
