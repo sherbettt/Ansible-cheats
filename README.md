@@ -3,7 +3,8 @@
 <br/> [Return Values](https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html)
 <br/> [Indexes of all modules and plugins](https://docs.ansible.com/ansible/latest/collections/all_plugins.html)
 <br/> [ansible-doc](https://docs.ansible.com/ansible/latest/cli/ansible-doc.html)
-
+<br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/index.html)
+<br/> [Building Ansible inventories](https://docs.ansible.com/ansible/latest/inventory_guide/index.html)
 
 
 
