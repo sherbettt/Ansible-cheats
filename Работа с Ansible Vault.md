@@ -1,4 +1,5 @@
 # Работа с Ansible Vault
+<br/> [vault_guide](https://docs.ansible.com/ansible/latest/vault_guide/index.html)
 
 Ansible Vault - это инструмент для шифрования конфиденциальных данных в Ansible, таких как пароли, ключи API и другие секреты.
 
