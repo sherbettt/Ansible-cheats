@@ -12,6 +12,20 @@ data-review/
     └── htpasswd
 ```
 
+```bash
+[student@workstation files]$ cat .htaccess
+#AuthUserFile /etc/httpd/secrets/htpasswd
+AuthUserFile /home/student/data-review/files/htpasswd
+AuthGroupFile /dev/null
+AuthName "Please Enter Password"
+AuthType Basic
+Require valid-user
+[student@workstation files]$ cat htpasswd
+guest:$apr1$mI3I9LXa$8J2/4kjnthoP7tt8y6Bxa/
+```
+
+
+
 ### Подробное Руководство по Выполнению Задания
 
 #### 1. Основные Переменные и Значения
