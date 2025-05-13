@@ -128,3 +128,150 @@ ansible-inspect --type keyword --format json
         state: restarted
 ```  
 
+Ниже приведён список наиболее часто используемых директив в Ansible вместе с примерами их применения.
+
+## Основные директивы
+
+### 1. `name`
+Используется для задания понятного названия задачи.
+
+```yaml
+tasks:
+  - name: Установить Nginx веб-сервер
+    apt:
+      name: nginx
+      state: latest
+```
+
+### 2. `when`
+Позволяет устанавливать условия выполнения задачи.
+
+```yaml
+tasks:
+  - name: Перезагрузить систему, если установлена новая версия ядра
+    command: reboot
+    when: kernel_version != new_kernel_version
+```
+
+### 3. `with_items`
+Применяется для итерации по списку элементов.
+
+```yaml
+tasks:
+  - name: Создать пользователей
+    user:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - alice
+      - bob
+      - charlie
+```
+
+### 4. `register`
+Регистрирует вывод команды или модуля в переменную для дальнейшего использования.
+
+```yaml
+tasks:
+  - name: Проверка доступности сайта
+    uri:
+      url: http://example.com
+    register: site_status
+
+  - debug:
+      msg: "Сайт доступен" when: site_status.status_code == 200
+```
+
+### 5. `tags`
+Помечает задачи тегами для выбора конкретных задач при выполнении плейбуков.
+
+```yaml
+tasks:
+  - name: Обновление системы
+    apt:
+      upgrade: dist
+    tags: ["update"]
+```
+
+### 6. `block`
+Создает блок задач, позволяя объединять группы задач и применять общие настройки (например, обработку ошибок).
+
+```yaml
+tasks:
+  - block:
+     - name: Установка зависимостей
+       yum:
+         name: python-devel
+         state: installed
+     
+     - name: Клонирование репозитория GitHub
+       git:
+         repo: https://github.com/myproject.git
+         dest: ~/myproject
+   rescue:
+     - name: Откат изменений
+       shell: rm -rf ~/myproject
+```
+
+### 7. `include_tasks`
+Подключает внешний файл с задачами.
+
+```yaml
+tasks:
+  - include_tasks: install_nginx.yml
+```
+
+### 8. `import_playbook`
+Импортирует другой плейбук.
+
+```yaml
+- import_playbook: setup_database.yml
+```
+
+### 9. `delegate_to`
+Делегирует задачу другому узлу сети.
+
+```yaml
+tasks:
+  - name: Запустить проверку состояния сервера
+    ping:
+    delegate_to: backup_server
+```
+
+### 10. `ignore_errors`
+Игнорирует ошибки при выполнении задачи.
+
+```yaml
+tasks:
+  - name: Выполнить потенциально опасную команду
+    command: my_command
+    ignore_errors: yes
+```
+
+### 11. `become`
+Повышение привилегий пользователя для выполнения задачи.
+
+```yaml
+tasks:
+  - name: Удаление каталога
+    file:
+      path: /var/log/test.log
+      state: absent
+    become: yes
+```
+
+### 12. `loop`
+Более современный способ замены устаревшего `with_items`, поддерживает больше возможностей для циклов.
+
+```yaml
+tasks:
+  - name: Копируем файлы
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+    loop:
+      - {src: 'file1', dest: '/tmp/file1'}
+      - {src: 'file2', dest: '/tmp/file2'}
+```
+
+Эти директивы являются основой любого Ansible-плейбука и позволяют эффективно управлять конфигурациями серверов и автоматизировать рутинные задачи администрирования.
