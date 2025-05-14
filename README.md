@@ -8,7 +8,7 @@
 
 <br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/) -> [ansible.builtin.dnf module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html#ansible-collections-ansible-builtin-dnf-module)
 
-<br/> [[Templating (Jinja2)](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html)]
+<br/> [Templating (Jinja2)](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html) -> [Jinja2 Docs](https://jinja.palletsprojects.com/en/latest/templates/)
 
 
 
