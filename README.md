@@ -6,7 +6,7 @@
 <br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/index.html)
 <br/> [Building Ansible inventories](https://docs.ansible.com/ansible/latest/inventory_guide/index.html)
 
-
+<br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/) -> <br/> [ansible.builtin.dnf module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html#ansible-collections-ansible-builtin-dnf-module)
 
 
 
