@@ -56,12 +56,15 @@ vsftpd_package: vsftpd
 vsftpd_service: vsftpd
 vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
 ```
+убедиться, что текущий контекст соответствует ожидаемому типу с помощью команды: 
+`ls -Z /etc/vsftpd/vsftpd.conf`
 
 #### Шаг 7: Плейбук для конфигурирования сервиса vsftpd (`ansible-vsftpd.yml`)
 Создаем второй плейбук `/home/student/review-playbooks/ansible-vsftpd.yml` следующим образом:
 ```yaml
 ---
 - name: FTP server is installed
+  become: true
   hosts:
    - ftpservers
   vars_files:
@@ -109,7 +112,7 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
 
    - name: FTP passive data ports are open
      firewalld:
-       port: 21000-20/tcp
+       port: 21000-20/tcp  # port: 21000-21020/tcp
        permanent: yes
        state: enabled
        immediate: yes
