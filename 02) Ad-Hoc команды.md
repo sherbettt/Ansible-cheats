@@ -1,6 +1,5 @@
-Ad-hoc-команды позволяют быстро выполнить одну операцию на одном или нескольких удалённых серверах без написания плейбуков. Они полезны для простых действий вроде установки пакетов, перезагрузки машин, копирования файлов и других однотипных задач.
+Ad-Hoc команды в Ansible — это простой способ выполнить команду на удаленных хостах без написания полноценного плейбука. Они позволяют быстро тестировать конфигурационные изменения, проверять статус системы или запускать простые команды.
 
-Вот несколько примеров ad-hoc-команд:
 
 ---
 
@@ -117,4 +116,150 @@ server1 | SUCCESS => {
 $ ansible server1 -m setup -a 'filter=ansible_eth*'
 ```
 
-Таким образом, эта команда полезна для быстрого получения подробной информации о серверах перед выполнением более сложных операций конфигурации или мониторинга.
+
+
+
+### Базовые команды
+
+```bash
+ansible all -m shell -a 'ls /tmp'
+```
+**Описание:** Выполняет команду `ls` в директории `/tmp` на всех хоста.
+
+---
+
+### Использование модуля `command`
+
+```bash
+ansible webservers -m command -a '/usr/bin/uptime'
+```
+**Описание:** Запускает команду `/usr/bin/uptime` на хостах группы `webservers`.
+
+---
+
+### Проверка файлов
+
+```bash
+ansible dbservers -m stat -a 'path=/var/lib/mysql'
+```
+**Описание:** Проверяет существование каталога `/var/lib/mysql` на хостах группы `dbservers`.
+
+---
+
+### Установка пакетов
+
+```bash
+ansible all -m yum -a 'name=httpd state=latest'
+```
+**Описание:** Устанавливает пакет `httpd` последней версии на всех хостах.
+
+---
+
+### Удаление пакетов
+
+```bash
+ansible servers -m apt -a 'name=nginx state=absent'
+```
+**Описание:** Удаляет пакет `nginx` с хостов группы `servers`.
+
+---
+
+### Создание файлов
+
+```bash
+ansible nodes -m copy -a 'content="Hello World" dest=/tmp/greeting.txt'
+```
+**Описание:** Создает файл `/tmp/greeting.txt` с содержимым `"Hello World"` на всех хостах группы `nodes`.
+
+---
+
+### Переименование файлов
+
+```bash
+ansible websrvs -m file -a 'src=/var/www/html/index.html dest=/var/www/html/old-index.html state=link'
+```
+**Описание:** Переименовывает файл `/var/www/html/index.html` в `/var/www/html/old-index.html`, сохраняя ссылку на исходный файл.
+
+---
+
+### Отправка файлов
+
+```bash
+ansible apps -m scp -a 'src=/home/user/myfile.tar.gz dest=/opt/apps/'
+```
+**Описание:** Копирует локально расположенный архив `/home/user/myfile.tar.gz` на все хосты группы `apps` в директорию `/opt/apps/`.
+
+---
+
+### Загрузка файлов с удаленного сервера
+
+```bash
+ansible hosts -m fetch -a 'src=/etc/passwd dest=/local/backup/'
+```
+**Описание:** Скачивает файл `/etc/passwd` с каждого хоста группы `hosts` в локальную директорию `/local/backup/`.
+
+---
+
+### Выключение серверов
+
+```bash
+ansible prod_servers -m shell -a 'shutdown now' --ask-pass
+```
+**Описание:** Отключает каждый сервер из группы `prod_servers`. После запуска потребуется ввести пароль суперпользователя.
+
+---
+
+### Уведомление администраторов
+
+```bash
+ansible all -m user -a 'name=admin notify=true'
+```
+**Описание:** Добавляет пользователя `admin` ко всем хостам и отправляет уведомление о завершении операции.
+
+---
+
+### Работа с правами пользователей
+
+```bash
+ansible devmachines -m user -a 'name=john groups=wheel append=true'
+```
+**Описание:** Добавляет пользователя `john` в группу `wheel` на всех машинах группы `devmachines`.
+
+---
+
+### Автоматическое создание каталогов
+
+```bash
+ansible app_hosts -m file -a 'path=/data/app state=directory mode=0755 owner=app_user group=app_group'
+```
+**Описание:** Создает каталог `/data/app` с указанными правами доступа и владельцем.
+
+---
+
+### Удаление пустых каталогов
+
+```bash
+ansible webhost -m file -a 'path=/var/www/emptydir state=absent'
+```
+**Описание:** Удаляет пустой каталог `/var/www/emptydir` на хостах группы `webhost`.
+
+---
+
+### Асинхронная команда (Background)
+
+```bash
+ansible servers -b -a 'yum update -y' --forks=10 --background=10
+```
+**Описание:** Запускает обновление пакетов командой `yum update -y` асинхронно на всех серверах группы `servers`, одновременно используя 10 потоков (`--forks=10`) и проверяя выполнение каждые 10 секунд (`--background=10`).
+
+---
+
+### Вывод результатов команды в JSON
+
+```bash
+ansible control_nodes -m setup | json_pp
+```
+**Описание:** Запрашивает данные о конфигурации хостов и выводит их в удобочитаемом JSON формате.
+
+---
+
