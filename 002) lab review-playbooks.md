@@ -77,6 +77,9 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
      yum:
        name: "{{ vsftpd_package }}"
        state: present
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/host_group_vars_vars.html -> vars_files
+# https://docs.ansible.com/ansible/latest/reference_appendices/config.html -> vars_files
+
 
    - name: Ensure service is started
      service:
@@ -93,11 +96,13 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        mode: '0600'
        setype: etc_t
      notify: restart vsftpd
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html#ansible-collections-ansible-builtin-template-module
 
    - name: firewalld is installed
      yum:
        name: firewalld
        state: present
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html#ansible-collections-ansible-builtin-dnf-module
 
    - name: firewalld is started and enabled
      service:
@@ -118,12 +123,14 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        permanent: yes
        state: enabled
        immediate: yes
+# https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html
 
   handlers:
    - name: restart vsftpd
      service:
        name: "{{ vsftpd_service }}"
        state: restarted
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/service_module.html#ansible-collections-ansible-builtin-service-module
 ```
 
 #### Шаг 8: Объединение плейбоков в единый плейбук (`site.yml`)
