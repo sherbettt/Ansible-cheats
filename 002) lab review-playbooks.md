@@ -150,6 +150,12 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
 cd ~/review-playbooks
 ansible-playbook site.yml
 ```
+#### Шаг 10: Ping
+```bash
+ansible -m ping all
+ansible -i inventory all -m ping
+ansible -i inventory all -a "whoami"
+```
 
 При успешном выполнении мы увидим вывод примерно такой формы:
 ```
