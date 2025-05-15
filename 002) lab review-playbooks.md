@@ -215,7 +215,7 @@ vsftpd_config_file: /etc/vsftpd/vsftpd.conf
 
     - name: Include playbooks
       include_tasks: ansible-vsftpd.yml
-      when: inventory_hostname in groups.ftpservers​<footnote id="1" index=2 href="https://linuxlife.page/posts/15-ftp-server-ansible/" title="FTPS-сервер. Быстрая установка с помощью Ansible и vsftp"/>
+      when: inventory_hostname in groups.ftpservers​
 ```
 
 ### Исполнение плейбука site.yml:
