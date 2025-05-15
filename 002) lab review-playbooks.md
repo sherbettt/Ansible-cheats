@@ -112,6 +112,17 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        state: present
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html#ansible-collections-ansible-builtin-dnf-module
 
+# Для просмотра переменной "firewalled_ports.stdout"
+   - name: List all public zone ports
+     command: firewall-cmd --list-all-ports --zone=public
+     register: firewalled_ports
+     changed_when: false
+
+   - name: Display contents of firewalled_ports.stdout
+     debug:
+       msg: "{{ firewalled_ports.stdout }}"
+
+
    - name: firewalld is started and enabled
      service:
        name: firewalld
