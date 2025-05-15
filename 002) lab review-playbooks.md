@@ -119,11 +119,13 @@ become = true
 
 #### 2. Помещаем шаблон vsftpd.conf.j2 в каталог templates:
 ```bash
+mkdir -v templates
 mv vsftpd.conf.j2 templates/
 ```
 
 #### 3. Помещаем defaults-template.yml в каталог vars:
 ```bash
+mkdir -v vars
 mv defaults-template.yml vars/
 ```
 
