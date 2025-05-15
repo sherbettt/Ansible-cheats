@@ -57,7 +57,7 @@ vsftpd_service: vsftpd
 vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
 ```
 убедиться, что текущий контекст соответствует ожидаемому типу с помощью команды: 
-`ls -Z /etc/vsftpd/vsftpd.conf`
+`ansible -i inventory ftpservers -b -a "ls -Z /etc/vsftpd/vsftpd.conf" --become-method=sudo`
 
 #### Шаг 7: Плейбук для конфигурирования сервиса vsftpd (`ansible-vsftpd.yml`)
 Создаем второй плейбук `/home/student/review-playbooks/ansible-vsftpd.yml` следующим образом:
