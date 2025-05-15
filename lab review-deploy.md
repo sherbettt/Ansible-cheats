@@ -108,4 +108,55 @@ ansible dev -m copy -a "content='Managed by Ansible\n' dest=/etc/motd"
 ansible dev -m shell -a "cat /etc/motd"
 ```
 
-Это решение обеспечивает выполнение всех поставленных требований.
+Вот эквивалентные задачи для указанных команд ad-hoc в виде плейбука Ansible:
+
+## Плейбук для установки текста "Managed by Ansible" в файл `/etc/motd`:
+
+```yaml
+---
+- name: Update /etc/motd content on servers
+  hosts: dev
+  become: true
+  vars:
+    motd_content: "Managed by Ansible\n"
+  
+  tasks:
+    - name: Ensure /etc/motd contains specific message
+      copy:
+        content: "{{ motd_content }}"
+        dest: "/etc/motd"
+      remote_user: devops
+```
+
+---
+
+## Плейбук для вывода содержимого файла `/etc/motd`:
+
+```yaml
+---
+- name: Verify /etc/motd content on servers
+  hosts: dev
+  tasks:
+    - name: Output current /etc/motd content
+      shell: cat /etc/motd
+      register: motd_output
+    
+    - name: Display the output from /etc/motd
+      debug:
+        var: motd_output.stdout_lines
+```
+
+---
+
+## Объяснения:
+
+- **Первый плейбук** обновляет файл `/etc/motd`, используя модуль `copy`. Мы используем переменную `motd_content`, чтобы сделать код более читаемым и легко настраиваемым.
+- **Второй плейбук** выводит содержимое файла `/etc/motd` с помощью модуля `shell`. Команда регистрирует вывод в переменной `motd_output`, которую затем отображаем с помощью модуля `debug`.
+
+Запуск плейбуков осуществляется командой:
+
+```bash
+ansible-playbook path/to/your-playbook.yml
+```
+
+Эти плейбуки будут выполнять аналогичные действия указанным командам ad-hoc, обеспечивая лучший контроль и повторяемость операций.
