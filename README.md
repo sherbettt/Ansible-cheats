@@ -10,5 +10,6 @@
 
 <br/> [Templating (Jinja2)](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html) -> [Jinja2 Docs](https://jinja.palletsprojects.com/en/latest/templates/)
 
+---
 
-
+ещё одна [Шпаргалка по Ansible](https://github.com/horv1tz/useful/blob/main/DevOps/Ansible.md)
