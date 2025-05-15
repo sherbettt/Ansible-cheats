@@ -145,7 +145,14 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        permanent: yes
        state: enabled
        immediate: yes
-     when: "'21000-20/tcp' not in firewalled_ports.stdout"  # проверки существования порта
+#     when: "'21000-20/tcp' not in firewalled_ports.stdout"  # проверки существования порта
+     when: >-
+       (
+         ansible_firewalld.query('port', '21000-20/tcp') != 'enabled'
+         or
+         ansible_firewalld.query('port', '21000-20/tcp', 'public') != 'enabled'
+       )
+
 # https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html
 
 # Длинный вариант с проверкой портов - disabled/enabled
