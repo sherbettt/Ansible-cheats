@@ -141,35 +141,62 @@ vsftpd_config_file: /etc/vsftpd/vsftpd.conf
 #### 5. Создаем плейбук ansible-vsftpd.yml по пути /home/student/review-playbooks/ansible-vsftpd.yml:
 ```yaml
 ---
-- name: FTP сервер установлен
+- name: FTP server is installed
   hosts: ftpservers
   become: true
   vars_files:
     - vars/defaults-template.yml
     - vars/vars.yml
+
   tasks:
-    - name: Убедиться в установке пакета vsftpd
-      package:
+    - name: Packages are installed
+      yum:
         name: "{{ vsftpd_package }}"
         state: present
 
-    - name: Сервис запущен
-      template:
-        src: templates/vsftpd.conf.j2
-        dest: "{{ vsftpd_config_file }}"
-        owner: root
-        group: root
-        mode: '0644'
-      notify: Restart vsftpd
-
-    - name: Enable and start vsftpd service
+    - name: Ensure service is started
       service:
         name: "{{ vsftpd_service }}"
         state: started
         enabled: true
 
+    - name: Configuration file is installed
+      template:
+        src: templates/vsftpd.conf.j2
+        dest: "{{ vsftpd_config_file }}"
+        owner: root
+        group: root
+        mode: 0600
+        setype: etc_t
+      notify: restart vsftpd
+
+    - name: firewalld is installed
+      yum:
+        name: firewalld
+        state: present
+
+    - name: firewalld is started and enabled
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: FTP port is open
+      firewalld:
+        service: ftp
+        permanent: true
+        state: enabled
+        immediate: yes
+
+    - name: FTP passive data ports are open
+      firewalld:
+        port: 21000-21020/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
+
   handlers:
-    - name: Restart vsftpd
+    - name: restart vsftpd
       service:
         name: "{{ vsftpd_service }}"
         state: restarted
