@@ -6,6 +6,7 @@ ansible -m ping all
 ansible -i inventory all -m ping
 ansible -i inventory all -a "whoami"
 ansible -i inventory ftpservers -b -a "firewall-cmd --list-all --zone=public" --become-method=sudo
+ansible -i inventory ftpservers -b -a "firewall-cmd --list-services --zone=public" --become-method=sudo
 ```
 
 #### Шаг 1: Создание инвентарного файла (`inventory`)
