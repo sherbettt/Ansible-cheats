@@ -217,6 +217,14 @@ vsftpd_config_file: /etc/vsftpd/vsftpd.conf
       include_tasks: ansible-vsftpd.yml
       when: inventory_hostname in groups.ftpservers​
 ```
+или
+```yaml
+---
+# FTP Servers playbook
+- import_playbook: ansible-vsftpd.yml
+# FTP Clients playbook
+- import_playbook: ftpclients.yml
+```
 
 ### Исполнение плейбука site.yml:
 ```bash
