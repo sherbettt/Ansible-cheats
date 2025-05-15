@@ -202,7 +202,7 @@ vsftpd_config_file: /etc/vsftpd/vsftpd.conf
         state: restarted
 ```
 
-#### 6. Создаем плейбук site.yml:
+#### 6. Создаем плейбук site.yml в директории /home/student/review-playbooks/ , включая сценарии из ftpclients.yml и ansiblevsftpd.yml:
 ```yaml
 ---
 - name: Site-wide deployment
