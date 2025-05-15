@@ -61,27 +61,64 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
 Создаем второй плейбук `/home/student/review-playbooks/ansible-vsftpd.yml` следующим образом:
 ```yaml
 ---
-- name: Configure VSFTPD servers
-  hosts: ftpservers
-  become: true
+- name: FTP server is installed
+  hosts:
+   - ftpservers
   vars_files:
-    - "./vars/vars.yml"
+   - vars/defaults-template.yml
+   - vars/vars.yml
   tasks:
-    - name: Install VSFTPD package
-      yum:
-        name: "{{ vsftpd_package }}"
-        state: present
+   - name: Packages are installed
+     yum:
+       name: "{{ vsftpd_package }}"
+       state: present
 
-    - name: Copy config file
-      template:
-        src: "./templates/vsftpd.conf.j2"
-        dest: "{{ vsftpd_config_file }}"
+   - name: Ensure service is started
+     service:
+       name: "{{ vsftpd_service }}"
+       state: started
+       enabled: true
 
-    - name: Start and enable VSFTPD service
-      systemd:
-        name: "{{ vsftpd_service }}"
-        enabled: yes
-        state: started
+   - name: Configuration file is installed
+     template:
+       src: templates/vsftpd.conf.j2
+       dest: "{{ vsftpd_config_file }}"
+       owner: root
+       group: root
+       mode: '0600'
+       setype: etc_t
+     notify: restart vsftpd
+
+   - name: firewalld is installed
+     yum:
+       name: firewalld
+       state: present
+
+   - name: firewalld is started and enabled
+     service:
+       name: firewalld
+       state: started
+       enabled: yes
+
+   - name: FTP port is open
+     firewalld:
+       service: ftp
+       permanent: true
+       state: enabled
+       immediate: yes
+
+   - name: FTP passive data ports are open
+     firewalld:
+       port: 21000-20/tcp
+       permanent: yes
+       state: enabled
+       immediate: yes
+
+  handlers:
+   - name: restart vsftpd
+     service:
+       name: "{{ vsftpd_service }}"
+       state: restarted
 ```
 
 #### Шаг 8: Объединение плейбоков в единый плейбук (`site.yml`)
