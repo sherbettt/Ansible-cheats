@@ -1,239 +1,113 @@
+### Решение задачки по Ansible
 
-### Анализ задачи и пошаговые решения
-
-#### Исходные данные:
-- **Каталог структуры**:
+#### Шаг 1: Создание инвентарного файла (`inventory`)
+Создаем файл `/home/student/review-playbooks/inventory` следующего содержания:
 ```bash
-tree .
-.
-├── ansible.cfg
-├── defaults-template.yml
-├── inventory
-├── vars.yml
-└── vsftpd.conf.j2
-```
+[ftpclients]
+serverc.lab.example.com
 
-- **Файл vars.yml**:
-```yaml
----
-# vars file for ansible-vsftpd
-vsftpd_package: vsftpd
-vsftpd_service: vsftpd
-vsftpd_config_file: /etc/vsftpd/vsftpd.conf
-```
-
-- **Шаблон vsftpd.conf.j2**:
-```j2
-# Vsftpd configuration
-# {{ ansible_managed }}
-
-connect_from_port_20={{ 'YES' if vsftpd_connect_from_port_20 else 'NO' }}
-listen={{ 'YES' if vsftpd_listen else 'NO' }}
-pam_service_name=vsftpd
-syslog_enable={{ 'YES' if vsftpd_syslog_enable else 'NO' }}
-
-anonymous_enable={{ 'YES' if vsftpd_anonymous_enable else 'NO' }}
-{% if vsftpd_anon_root is defined %}
-anon_root={{ vsftpd_anon_root }}
-{% endif %}
-
-local_enable={{ 'YES' if vsftpd_local_enable else 'NO' }}
-{% if vsftpd_local_root is defined %}
-local_root={{ vsftpd_local_root }}
-{% endif %}
-local_umask=022
-
-write_enable={{ 'YES' if vsftpd_write_enable else 'NO' }}
-
-chroot_local_user={{ 'YES' if vsftpd_chroot_local_user else 'NO' }}
-
-pasv_enable=Yes
-pasv_min_port=21000
-pasv_max_port=21020
-```
-
-- **Файл defaults-template.yml**:
-```yaml
----
-# defaults file for ansible-vsftpd
-vsftpd_anonymous_enable: true
-vsftpd_connect_from_port_20: true
-vsftpd_listen: true
-vsftpd_local_enable: false
-vsftpd_setype: public_content_t
-vsftpd_syslog_enable: true
-vsftpd_write_enable: true
-vsftpd_chroot_local_user: true
-vsftpd_anon_root: /var/ftp
-vsftpd_local_root: /var/ftp
-```
-
-- **Файл inventory**:
-```bash
 [ftpservers]
 serverb.lab.example.com
 serverd.lab.example.com
-
-[ftpclients]
-serverc.lab.example.com
 ```
 
-- **Файл ansible.cfg**:
+#### Шаг 2: Настройка конфигурационного файла `ansible.cfg`
+Создаем файл `/home/student/review-playbooks/ansible.cfg`, содержащий следующие настройки:
 ```ini
 [defaults]
-remote_user = devops
 inventory = ./inventory
-
-[privilege_escalation]
-become_user = root
+remote_user = devops
+become = True
 become_method = sudo
-become = true
+become_user = root
 ```
 
-### Шаги для выполнения задачи:
-
-1. **Создать инвенторный файл**: Уже выполнен.
-2. **Создать ансибл-конфигурационный файл**: Уже выполнен.
-3. **Создать плейбук ftpclients.yml**: Нужно создать плейбук, который устанавливает пакет lftp на клиентские хосты.
-4. **Скопировать предоставленный шаблон**: Нужно поместить файл vsftpd.conf.j2 в каталог templates.
-5. **Поместить файл defaults-template.yml в каталог vars**: Скопировать defaults-template.yml в vars.
-6. **Создать vars.yml файл**: Нужен файл vars.yml для определения основных переменных.
-7. **Создать плейбук ansible-vsftpd.yml**: Должен обеспечить установку и конфигурацию vsftpd на серверах.
-8. **Создать плейбук site.yml**: Он включает предыдущие плейбуки.
-9. **Исполнить плейбук site.yml**: Проверить правильность работы.
-
-### Реализация
-
-#### 1. Создаем плейбук ftpclients.yml:
+#### Шаг 3: Создание плейбука для установки пакета lftp (`ftpclients.yml`)
+Создаем файл `/home/student/review-playbooks/ftpclients.yml` с таким содержимым:
 ```yaml
 ---
-- name: Установка LFTP на FTP клиенты
+- name: Install lftp package on FTP clients
   hosts: ftpclients
   become: true
   tasks:
-    - name: Ensure lftp is installed
-      package:
+    - name: Ensure lftp package is installed
+      yum:
         name: lftp
-        state: latest
+        state: present
 ```
 
-#### 2. Помещаем шаблон vsftpd.conf.j2 в каталог templates:
+#### Шаг 4: Перемещение шаблона конфигурации (`vsftpd.conf.j2`) в каталог `templates`
+Перемещаем существующий шаблон `vsftpd.conf.j2` в подпапку `./templates`.
 ```bash
-mkdir -v templates
-mv vsftpd.conf.j2 templates/
+mkdir -p templates && mv vsftpd.conf.j2 templates/
 ```
 
-#### 3. Помещаем defaults-template.yml в каталог vars:
+#### Шаг 5: Перемещение файла `defaults-template.yml` в папку `vars`
+Перемещаем файл `defaults-template.yml` в директорию `./vars`.
 ```bash
-mkdir -v vars
-mv defaults-template.yml vars/
+mkdir -p vars && mv defaults-template.yml vars/
 ```
 
-#### 4. Создаем vars.yml в директории vars:
+#### Шаг 6: Определение переменных в файле `vars.yml`
+Создаем файл `/home/student/review-playbooks/vars/vars.yml` с такими переменными:
 ```yaml
 ---
-# vars file for ansible-vsftpd
 vsftpd_package: vsftpd
 vsftpd_service: vsftpd
-vsftpd_config_file: /etc/vsftpd/vsftpd.conf
+vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
 ```
 
-#### 5. Создаем плейбук ansible-vsftpd.yml по пути /home/student/review-playbooks/ansible-vsftpd.yml:
+#### Шаг 7: Плейбук для конфигурирования сервиса vsftpd (`ansible-vsftpd.yml`)
+Создаем второй плейбук `/home/student/review-playbooks/ansible-vsftpd.yml` следующим образом:
 ```yaml
 ---
-- name: FTP server is installed
+- name: Configure VSFTPD servers
   hosts: ftpservers
   become: true
   vars_files:
-    - vars/defaults-template.yml
-    - vars/vars.yml
-
+    - "./vars/vars.yml"
   tasks:
-    - name: Packages are installed
+    - name: Install VSFTPD package
       yum:
         name: "{{ vsftpd_package }}"
         state: present
 
-    - name: Ensure service is started
-      service:
-        name: "{{ vsftpd_service }}"
-        state: started
-        enabled: true
-
-    - name: Configuration file is installed
+    - name: Copy config file
       template:
-        src: templates/vsftpd.conf.j2
+        src: "./templates/vsftpd.conf.j2"
         dest: "{{ vsftpd_config_file }}"
-        owner: root
-        group: root
-        mode: 0600
-        setype: etc_t
-      notify: restart vsftpd
 
-    - name: firewalld is installed
-      yum:
-        name: firewalld
-        state: present
-
-    - name: firewalld is started and enabled
-      service:
-        name: firewalld
-        state: started
-        enabled: yes
-
-    - name: FTP port is open
-      firewalld:
-        service: ftp
-        permanent: true
-        state: enabled
-        immediate: yes
-
-    - name: FTP passive data ports are open
-      firewalld:
-        port: 21000-21020/tcp
-        permanent: yes
-        state: enabled
-        immediate: yes
-
-  handlers:
-    - name: restart vsftpd
-      service:
+    - name: Start and enable VSFTPD service
+      systemd:
         name: "{{ vsftpd_service }}"
-        state: restarted
+        enabled: yes
+        state: started
 ```
 
-#### 6. Создаем плейбук site.yml в директории /home/student/review-playbooks/ , включая сценарии из ftpclients.yml и ansiblevsftpd.yml:
-```yaml
----
-- name: Site-wide deployment
-  hosts: all
-  become: true
-  pre_tasks:
-    - name: Include playbooks
-      include_tasks: ftpclients.yml
-      when: inventory_hostname in groups.ftpclients
-
-    - name: Include playbooks
-      include_tasks: ansible-vsftpd.yml
-      when: inventory_hostname in groups.ftpservers​
-```
-или
+#### Шаг 8: Объединение плейбоков в единый плейбук (`site.yml`)
+Создаем основной плейбук `/home/student/review-playbooks/site.yml`, включающий оба ранее созданных плейбука:
 ```yaml
 ---
 # FTP Servers playbook
-- import_playbook: ansible-vsftpd.yml
-# FTP Clients playbook
 - import_playbook: ftpclients.yml
+
+# FTP Clients playbook
+- import_playbook: ansible-vsftpd.yml
 ```
 
-### Исполнение плейбука site.yml:
+#### Шаг 9: Запуск плейбуков для проверки
+Запустим плейбук командой:
 ```bash
+cd ~/review-playbooks
 ansible-playbook site.yml
 ```
 
-### Итоги:
-- Созданы нужные плейбуки и файлы.
-- Вся инфраструктура описана с учетом существующих требований.
-- Тестируется работа плейбуков с нужными действиями.
+При успешном выполнении мы увидим вывод примерно такой формы:
+```
+PLAY RECAP *********************************************************************
+serverb.lab.example.com : ok=3 changed=1 unreachable=0 failed=0 skipped=0 rescued=0 ignored=0   
+serverc.lab.example.com : ok=1 changed=1 unreachable=0 failed=0 skipped=0 rescued=0 ignored=0   
+serverd.lab.example.com : ok=3 changed=1 unreachable=0 failed=0 skipped=0 rescued=0 ignored=0  
+```
 
-Таким образом, задача успешно решена, и весь процесс автоматизирован средствами Ansible.
+Таким образом, проверяется установка пакетов и настройка сервисов на целевых хостах согласно заданному плану.
