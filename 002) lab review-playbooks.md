@@ -129,7 +129,7 @@ mkdir -v vars
 mv defaults-template.yml vars/
 ```
 
-#### 4. Создаем vars.yml:
+#### 4. Создаем vars.yml в директории vars:
 ```yaml
 ---
 # vars file for ansible-vsftpd
@@ -138,7 +138,7 @@ vsftpd_service: vsftpd
 vsftpd_config_file: /etc/vsftpd/vsftpd.conf
 ```
 
-#### 5. Создаем плейбук ansible-vsftpd.yml:
+#### 5. Создаем плейбук ansible-vsftpd.yml по пути /home/student/review-playbooks/ansible-vsftpd.yml:
 ```yaml
 ---
 - name: Setup VSFTPD Servers
