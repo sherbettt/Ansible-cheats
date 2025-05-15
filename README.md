@@ -10,6 +10,7 @@
 <br/> [Return Values](https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html)
 <br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/index.html)
 <br/> [Building Ansible inventories](https://docs.ansible.com/ansible/latest/inventory_guide/index.html)
+<br/> [Ansible CLI cheatsheet](https://docs.ansible.com/ansible/latest/command_guide/cheatsheet.html)
 
 ---
 
