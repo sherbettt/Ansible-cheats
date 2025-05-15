@@ -1,5 +1,5 @@
 Базовые страницы для поиска модулей в [ansible-doc](https://docs.ansible.com/ansible/latest/cli/ansible-doc.html):
-<br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/) -> [ansible.builtin.dnf module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html#ansible-collections-ansible-builtin-dnf-module)
+<br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/) -> [ansible.builtin modules](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/)
 <br/> а также
 <br/> [Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task)
 
