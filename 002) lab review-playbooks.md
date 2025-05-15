@@ -17,6 +17,8 @@ serverd.lab.example.com
 [defaults]
 inventory = ./inventory
 remote_user = devops
+
+[privilege_escalation]
 become = True
 become_method = sudo
 become_user = root
