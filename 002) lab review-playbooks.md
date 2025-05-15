@@ -113,17 +113,6 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        state: present
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/dnf_module.html#ansible-collections-ansible-builtin-dnf-module
 
-# Для просмотра переменной "firewalled_ports.stdout"
-#   - name: List all public zone ports
-#     command: firewall-cmd --list-all-ports --zone=public
-#     register: firewalled_ports
-#     changed_when: false
-
-#   - name: Display contents of firewalled_ports.stdout
-#     debug:
-#       msg: "{{ firewalled_ports.stdout }}"
-
-
    - name: firewalld is started and enabled
      service:
        name: firewalld
@@ -137,7 +126,7 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        state: enabled
        immediate: yes
 
-# Поскольку порты м ы открывааем первый раз и, чтобы после не было проблем с портами после повторного запуска плейбука и его блокировки,
+# Поскольку порты мы открывааем первый раз и, чтобы после не было проблем с портами после повторного запуска плейбука и его блокировки,
 # требуется сделать проверку через директиву when (хотя и не обязательно)
    - name: FTP passive data ports are open
      firewalld:
@@ -146,12 +135,12 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        state: enabled
        immediate: yes
 #     when: "'21000-20/tcp' not in firewalled_ports.stdout"  # проверки существования порта
-     when: >-
-       (
-         ansible_firewalld.query('port', '21000-20/tcp') != 'enabled'
-         or
-         ansible_firewalld.query('port', '21000-20/tcp', 'public') != 'enabled'
-       )
+#     when: >-
+#       (
+#         ansible_firewalld.query('port', '21000-20/tcp') != 'enabled'
+#         or
+#         ansible_firewalld.query('port', '21000-20/tcp', 'public') != 'enabled'
+#       )
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html
 
