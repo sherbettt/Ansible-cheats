@@ -117,13 +117,32 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        state: enabled
        immediate: yes
 
+# Поскольку порты м ы открывааем первый раз и, чтобы после не было проблем с портами после повторного запуска плейбука и его блокировки,
+# требуется сделать проверку через директиву when (хотя и не обязательно)
    - name: FTP passive data ports are open
      firewalld:
        port: 21000-20/tcp  # port: 21000-21020/tcp
        permanent: yes
        state: enabled
        immediate: yes
+     when: "'21000-20/tcp' not in firewalled_ports.stdout"  # проверки существования порта
 # https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html
+
+# Длинный вариант с проверкой портов - disabled/enabled
+#  - name: Remove existing rule
+#    firewalld:
+#      port: 21000-20/tcp
+#      permanent: yes
+#      state: disabled
+#      immediate: yes
+
+#  - name: Add new rule
+#    firewalld:
+#      port: 21000-20/tcp
+#      permanent: yes
+#      state: enabled
+#      immediate: yes
+
 
   handlers:
    - name: restart vsftpd
@@ -155,6 +174,7 @@ ansible-playbook site.yml
 ansible -m ping all
 ansible -i inventory all -m ping
 ansible -i inventory all -a "whoami"
+ansible -i inventory ftpservers -b -a "firewall-cmd --list-all --zone=public" --become-method=sudo
 ```
 
 При успешном выполнении мы увидим вывод примерно такой формы:
@@ -261,3 +281,7 @@ ls -Z /etc/vsftpd/vsftpd.conf
 - Изменить контекст одного файла можно командой `chcon -t NEW_TYPE FILE_PATH`.
 
 Таким образом, зная правильные типы контекста, вы сможете эффективно защищать файлы и ресурсы в своей системе с помощью SELinux.
+
+------------------------------
+
+
