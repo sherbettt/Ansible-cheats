@@ -141,19 +141,19 @@ vsftpd_config_file: /etc/vsftpd/vsftpd.conf
 #### 5. Создаем плейбук ansible-vsftpd.yml по пути /home/student/review-playbooks/ansible-vsftpd.yml:
 ```yaml
 ---
-- name: Setup VSFTPD Servers
+- name: FTP сервер установлен
   hosts: ftpservers
   become: true
   vars_files:
     - vars/defaults-template.yml
     - vars/vars.yml
   tasks:
-    - name: Ensure vsftpd package is installed
+    - name: Убедиться в установке пакета vsftpd
       package:
         name: "{{ vsftpd_package }}"
         state: present
 
-    - name: Render vsftpd configuration file
+    - name: Сервис запущен
       template:
         src: templates/vsftpd.conf.j2
         dest: "{{ vsftpd_config_file }}"
@@ -172,7 +172,7 @@ vsftpd_config_file: /etc/vsftpd/vsftpd.conf
     - name: Restart vsftpd
       service:
         name: "{{ vsftpd_service }}"
-        state: restarted​<footnote id="1" index=1 href="https://linuxlife.page/posts/15-ftp-server-ansible/" title="FTPS-сервер. Быстрая установка с помощью Ansible и vsftp"/>
+        state: restarted
 ```
 
 #### 6. Создаем плейбук site.yml:
