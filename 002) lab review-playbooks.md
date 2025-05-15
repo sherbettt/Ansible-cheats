@@ -167,6 +167,14 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        state: restarted
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/service_module.html#ansible-collections-ansible-builtin-service-module
 ```
+сбросить состояние Firewall портов
+```
+# Удаление существующего правила `(state=disabled)`. Удаляет правило брандмауэра для диапазона портов 21000–20 по протоколу TCP, применяя изменения немедленно и делая их постоянными.
+ansible all -m firewalld -a "port=21000-20/tcp permanent=true state=disabled immediate=true"
+
+# Создание нового правила `(state=enabled)`. Добавляет новое правило брандмауэра для тех же портов, разрешая доступ и также сохраняя изменения постоянно и применяя их немедленно.
+ansible all -m firewalld -a "port=21000-20/tcp permanent=true state=enabled immediate=true"
+```
 
 #### Шаг 8: Объединение плейбоков в единый плейбук (`site.yml`)
 Создаем основной плейбук `/home/student/review-playbooks/site.yml`, включающий оба ранее созданных плейбука:
