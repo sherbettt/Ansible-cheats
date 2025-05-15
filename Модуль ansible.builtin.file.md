@@ -1,0 +1,147 @@
+# Анализ модуля `ansible.builtin.file`
+
+Модуль `file` в Ansible используется для управления файлами, каталогами и символическими ссылками на управляемых узлах. Он предоставляет функциональность, аналогичную командам `touch`, `mkdir`, `ln -s`, `rm` и `chmod`/`chown` в Linux.
+
+## Основные параметры модуля:
+
+- `path` (обязательный) - путь к файлу, каталогу или ссылке
+- `state` - определяет тип объекта:
+  - `file` - убедиться, что файл существует (по умолчанию)
+  - `directory` - создать каталог
+  - `link` - создать символическую ссылку
+  - `hard` - создать жесткую ссылку
+  - `touch` - создать пустой файл (аналог команды `touch`)
+  - `absent` - удалить объект
+- `mode` - установить права (например, '0644')
+- `owner` - владелец файла
+- `group` - группа файла
+- `recurse` - рекурсивно применять изменения (для каталогов)
+- `src` - исходный файл для ссылки (только для `state=link` или `state=hard`)
+
+## Примеры использования
+
+### 1. Простые примеры
+
+```yaml
+# Создать каталог с определенными правами
+- name: Ensure directory exists
+  ansible.builtin.file:
+    path: /etc/myapp
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+# Создать символическую ссылку
+- name: Create symbolic link
+  ansible.builtin.file:
+    src: /etc/nginx/nginx.conf
+    dest: /home/user/nginx.conf
+    state: link
+
+# Удалить файл
+- name: Remove file
+  ansible.builtin.file:
+    path: /tmp/old_file.txt
+    state: absent
+```
+
+### 2. Сложные примеры
+
+#### Пример с условиями и регистрацией результата
+
+```yaml
+- name: Check if config file exists and backup if needed
+  ansible.builtin.file:
+    path: /etc/myapp/config.conf
+    state: file
+  register: config_file
+
+- name: Backup config file if it was modified
+  ansible.builtin.copy:
+    src: /etc/myapp/config.conf
+    dest: /backups/config.conf.bak
+    remote_src: yes
+  when: config_file.changed
+```
+
+#### Пример с рекурсивным изменением прав
+
+```yaml
+- name: Recursively change ownership of directory
+  ansible.builtin.file:
+    path: /var/www/html
+    state: directory
+    owner: www-data
+    group: www-data
+    recurse: yes
+    mode: '0755'
+```
+
+#### Пример с созданием сложной структуры каталогов
+
+```yaml
+- name: Create complex directory structure
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: "{{ item.mode | default('0755') }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+  loop:
+    - { path: '/opt/myapp', mode: '0750', owner: 'appuser', group: 'appgroup' }
+    - { path: '/opt/myapp/logs', mode: '0770' }
+    - { path: '/opt/myapp/config' }
+    - { path: '/opt/myapp/temp', mode: '1777' }  # sticky bit
+```
+
+#### Пример с обработкой временных файлов
+
+```yaml
+- name: Create temporary files with timestamp
+  ansible.builtin.file:
+    path: "/tmp/backup-{{ ansible_date_time.iso8601_basic_short }}.tmp"
+    state: touch
+    mode: '0600'
+
+- name: Cleanup old temporary files
+  ansible.builtin.file:
+    path: "/tmp/backup-{{ item }}.tmp"
+    state: absent
+  loop: "{{ query('fileglob', '/tmp/backup-*.tmp') | map('basename') | map('regex_replace', 'backup-(.*)\\.tmp', '\\1') | list }}"
+  when: "item < (ansible_date_time.iso8601_basic_short | int - 10000)"
+```
+
+#### Пример с использованием шаблонов Jinja2
+
+```yaml
+- name: Configure multiple files from template
+  ansible.builtin.file:
+    path: "/etc/nginx/sites-available/{{ item.name }}"
+    state: touch
+    mode: '0644'
+  loop:
+    - { name: "default" }
+    - { name: "myapp1" }
+    - { name: "myapp2" }
+  notify: Reload nginx
+
+- name: Create symbolic links for enabled sites
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ item.name }}"
+    dest: "/etc/nginx/sites-enabled/{{ item.name }}"
+    state: link
+  loop:
+    - { name: "myapp1" }
+    - { name: "myapp2" }
+```
+
+## Лучшие практики
+
+1. Всегда используйте полные пути (не относительные)
+2. Для критических операций добавляйте `backup: yes` для создания резервных копий
+3. Используйте `validate` для проверки файлов (например, конфигураций) перед изменением
+4. Для атомарных операций используйте параметры `unsafe_writes` и `attributes`
+5. Регистрируйте результаты (`register`) для последующей обработки в других задачах
+
+Модуль `file` является одним из наиболее часто используемых в Ansible, так как управление файлами - это базовая операция при конфигурации систем.
