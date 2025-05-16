@@ -41,6 +41,36 @@ ansible -i inventory ftpservers -b -a "firewall-cmd --list-all --zone=public" --
 ansible -i inventory ftpservers -b -a "firewall-cmd --list-services --zone=public" --become-method=sudo
 ```
 
+```bash
+[student@workstation review-playbooks]$ cat vsftpd.conf.j2
+# Vsftpd configuration
+# {{ ansible_managed }}
+
+connect_from_port_20={{ 'YES' if vsftpd_connect_from_port_20 else 'NO' }}
+listen={{ 'YES' if vsftpd_listen else 'NO' }}
+pam_service_name=vsftpd
+syslog_enable={{ 'YES' if vsftpd_syslog_enable else 'NO' }}
+
+anonymous_enable={{ 'YES' if vsftpd_anonymous_enable else 'NO' }}
+{% if vsftpd_anon_root is defined %}
+anon_root={{ vsftpd_anon_root }}
+{% endif %}
+
+local_enable={{ 'YES' if vsftpd_local_enable else 'NO' }}
+{% if vsftpd_local_root is defined %}
+local_root={{ vsftpd_local_root }}
+{% endif %}
+local_umask=022
+
+write_enable={{ 'YES' if vsftpd_write_enable else 'NO' }}
+
+chroot_local_user={{ 'YES' if vsftpd_chroot_local_user else 'NO' }}
+
+pasv_enable=Yes
+pasv_min_port=21000
+pasv_max_port=21020
+```
+
 #### Шаг 1: Создание инвентарного файла (`inventory`)
 Создаем файл `/home/student/review-playbooks/inventory` следующего содержания:
 ```bash
