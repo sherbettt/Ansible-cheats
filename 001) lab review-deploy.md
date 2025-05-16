@@ -73,6 +73,8 @@ ansible dev -m copy -a 'content="Managed by Ansible\n" dest=/etc/motd' -b -u dev
 Выполните следующую команду ad-hoc для проверки одинаковости содержимого файла `/etc/motd` на обеих машинах:
 ```bash
 ansible dev -m shell -a "cat /etc/motd"
+или
+ansible dev -m command -a "cat /etc/motd"
 ```
 Ожидается, что вывод будет одинаковым и содержать строку `"Managed by Ansible"`.
 
