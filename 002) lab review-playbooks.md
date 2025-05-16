@@ -180,6 +180,8 @@ vsftpd_config_file: "/etc/vsftpd/vsftpd.conf"
        name: firewalld
        state: started
        enabled: yes
+# https://docs.ansible.com/ansible/latest/collections/ansible/posix/firewalld_module.html
+
 
    - name: FTP port is open
      firewalld:
