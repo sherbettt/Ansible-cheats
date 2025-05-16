@@ -167,9 +167,6 @@ ansible-playbook -i inventory site.yml
 
 2. Преобразуйте плейбук `ansible-vsftpd.yml` в роль `ansible-vsftpd`.
 
-RH294-RHEL8.4-en-1-20210818  
-455  
-Глава 10 | Итоговая проверка: автоматизация Linux с использованием Ansible
 
 3. Обновите содержимое файла `roles/ansible-vsftpd/meta/main.yml`, заполнив следующие значения переменных:
 | Переменная     | Значение           |
