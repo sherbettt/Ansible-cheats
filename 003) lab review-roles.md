@@ -159,4 +159,106 @@ ansible-playbook -i inventory site.yml
 
 Таким образом, задача выполнена согласно инструкции.
 
+-----------------------
 
+Инструкции
+
+1. Перейдите в рабочий каталог `review-roles`. Настройте проект Ansible для использования статического файла инвентаря `inventory`. Проверьте конфигурацию инвентаря командой `ansible-inventory`.
+
+2. Преобразуйте плейбук `ansible-vsftpd.yml` в роль `ansible-vsftpd`.
+
+RH294-RHEL8.4-en-1-20210818  
+455  
+Глава 10 | Итоговая проверка: автоматизация Linux с использованием Ansible
+
+3. Обновите содержимое файла `roles/ansible-vsftpd/meta/main.yml`, заполнив следующие значения переменных:
+| Переменная     | Значение           |
+|-----------------|--------------------|
+| author          | Red Hat Training   |
+| description     | пример роли для RH294 |
+| company         | Red Hat            |
+| license         | BSD                |
+
+4. Измените содержимое файла `roles/ansible-vsftpd/README.md`, добавив соответствующую информацию о роли. После изменения файл должен содержать следующее:
+```
+ansible-vsftpd
+==============
+Примерная роль ansible-vsftpd из курса "Автоматизация Linux" (RH294), предоставляемого компанией Red Hat.
+Переменные роли
+---------------
+Файл `defaults/main.yml` содержит переменные, используемые для настройки шаблона `vsftpd.conf`. Файл `vars/main.yml` включает имя службы vsftpd, название пакета RPM и расположение конфигурационного файла службы.
+Зависимости
+-----------
+Отсутствуют.
+Пример плейбука
+----------------
+```yaml
+- hosts: servers
+  roles:
+  - ansible-vsftpd
+```
+Лицензия
+-------
+BSD
+Информация об авторе
+------------------
+Red Hat (training@redhat.com)
+```
+
+5. Удалите неиспользуемые директории из новой роли.
+
+6. Создайте новый плейбук `vsftpd-configure.yml`, содержащий следующий код:
+```yaml
+---
+- name: Установка и настройка vsftpd
+  hosts: ftpservers
+  vars:
+    vsftpd_anon_root: "/mnt/share/"
+    vsftpd_local_root: "/mnt/share/"
+  roles:
+    - ansible-vsftpd
+  tasks:
+    - name: Раздел /dev/vdb1 размечен
+      parted:
+        device: /dev/vdb
+        number: 1
+        label: gpt
+        part_start: 1MiB
+        part_end: 100%
+        state: present
+    - name: ФС XFS существует на разделе /dev/vdb1
+      filesystem:
+        dev: /dev/vdb1
+        fstype: xfs
+        force: yes
+    - name: Точка монтирования anon_root создана
+      file:
+        path: '{{ vsftpd_anon_root }}'
+        state: directory
+    - name: /dev/vdb1 смонтирован на anon_root
+      mount:
+        path: '{{ vsftpd_anon_root }}'
+        src: /dev/vdb1
+        fstype: xfs
+        state: mounted
+        dump: '1'
+        passno: '2'
+      notify: перезагрузка vsftpd
+    - name: Проверяем права доступа к смонтированной ФС
+      file:
+        path: '{{ vsftpd_anon_root }}'
+        owner: root
+        group: root
+        mode: '0755'
+        setype: "{{ vsftpd_setype }}"
+        state: directory
+    - name: Копируем README в корневую директорию анонимного FTP
+      copy:
+        dest: '{{ vsftpd_anon_root }}/README'
+        content: "Добро пожаловать на FTP-сервер {{ ansible_fqdn }}\n"
+        setype: '{{ vsftpd_setype }}'
+```
+
+7. Измените плейбук `site.yml`, чтобы он использовал вновь созданный плейбук `vsftpd-configure.yml` вместо старого плейбука `ansible-vsftpd.yml`.
+
+8. Убедитесь, что плейбук `site.yml` работает правильно, запустив его командой `ansible-playbook`.
