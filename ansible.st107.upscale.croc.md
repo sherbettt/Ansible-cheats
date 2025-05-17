@@ -57,7 +57,7 @@ storage st107=storage.st107.upscale.croc ansible_host=192.168.107.11
 Общие настройки для всех узлов сети.
 ```yaml
 # group_vars/all.yml
-ansible_user: admin
+ansible_user: admin  #st107admin
 ansible_become: true
 ansible_python_interpreter: /usr/bin/python3
 ```
