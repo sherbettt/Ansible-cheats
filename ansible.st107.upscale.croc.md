@@ -5,13 +5,13 @@
 ├── group_vars              # Групповые переменные
 │   ├── all.yml             # Переменные общие для всех хостов
 │   ├── routers.yml         # Переменные группы роутеров
-│   ├── datacenters.yml     # Переменные группы дата-центров
+│   ├── domaincontrol.yml     # Переменные группы дата-центров
 │   └── storages.yml        # Переменные группы хранилищ
 ├── inventory               # Инвентарь хоста
 │   ├── hosts.ini           # Список управляемых машин
 │   └── group_vars          # Группы инвентаря
 │       ├── routers.yml     
-│       ├── datacenters.yml  
+│       ├── domaincontrol.yml  
 │       └── storages.yml    
 ├── playbooks               # Плейбуки
 │   ├── main.yml            # Основной плейбук
@@ -64,7 +64,7 @@ ansible_python_interpreter: /usr/bin/python3
 
 #### 3. Создаем групповые переменные:
 Создаем отдельные файлы для каждой группы устройств, содержащие специфичные для них переменные.
-Например, `group_vars/routers.yml`, `group_vars/datacenters.yml`, `group_vars/storages.yml`.
+Например, `group_vars/routers.yml`, `group_vars/domaincontrol.yml`, `group_vars/storages.yml`.
 
 Пример файла для роутера:
 ```yaml
@@ -92,7 +92,7 @@ snmp_community: public
         - net-tools
 
 - name: Setup Data Center Server
-  hosts: datacenters
+  hosts: domaincontrol
   become: yes
   gather_facts: yes
   tasks:
