@@ -46,7 +46,7 @@
 [routers]
 router1 st107=router1.st107.upscale.croc ansible_host=192.168.107.254
 
-[datacenters]
+[domaincontrol]
 dc1 st107=dc1.st107.upscale.croc ansible_host=192.168.107.10
 
 [storages]
