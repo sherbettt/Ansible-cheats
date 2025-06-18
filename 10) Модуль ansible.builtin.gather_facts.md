@@ -1,3 +1,5 @@
+[ansible.builtin.gather_facts module – Gathers facts about remote hosts](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/gather_facts_module.html#ansible-collections-ansible-builtin-gather-facts-module)
+
 ### Модуль **ansible.builtin.gather_facts**: Сбор фактов о удалённых узлах
 
 Модуль **gather_facts** является частью ядра Ansible (`ansible-core`) и автоматически включается во все установки Ansible. Этот модуль собирает полезные переменные о состоянии удаленных узлов, которые могут использоваться в плейбуках и сценариях автоматизации.
