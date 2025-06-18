@@ -152,6 +152,12 @@ tasks:
     command: reboot
     when: kernel_version != new_kernel_version
 ```
+```yaml
+tasks:
+  - name: "Shutdown Debian systems"
+    command: /sbin/shutdown -t now
+    when: ansible_facts['os_family'] == "Debian"
+```
 
 ### 3. `with_items`
 Применяется для итерации по списку элементов.
