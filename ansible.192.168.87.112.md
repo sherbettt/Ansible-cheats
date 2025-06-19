@@ -18,24 +18,38 @@
 -----------------------------------------------------------------------
 ## Ansible на роутере.
 
+#### 1. Перед созданием структуры требуется проверить соединение по SSH.
+Так как аутентификация по ключу уже настроена, убедитесь, что:
+- На роутере (`192.168.87.112`) есть приватный ключ (`~/.ssh/id_rsa`).
+- Публичный ключ (`~/.ssh/id_rsa.pub`) добавлен в `~/.ssh/authorized_keys` на управляемых машинах (`192.168.56.2` и `192.168.56.3`).
+
+Проверить подключение:
+```bash
+ssh -i ~/.ssh/id_rsa root@192.168.56.2
+ssh -i ~/.ssh/id_rsa root@192.168.56.3
+```
+
+#### 2. Создадим структура проекта:
 Для начала рассмотрим управление с роутера (`192.168.87.112/24`), установив на него предварительно Ansible.
 Структура проекта будет выглядеть примерно так на начальном этапе:
 ```
-~/.ansible/project/
-├── ansible.cfg
+~/.ansible/project1/
 ├── inventory/
-│   └── hosts.yml
-├── main.yml
-└── roles/
+│   ├── hosts.ini          # Инвентарный файл
+├── group_vars/
+│   └── all.yml            # Общие переменные
+├── playbooks/
+│   └── site.yml           # Основной playbook
+└── ansible.cfg            # Конфигурация Ansible
 ```
 
-Создадим структура проекта:
+
 ```bash
 mkdir -p ~/.ansible/project1/{inventory,group_vars,roles}
 cd ~/.ansible/project
 ```
 
- Файл `~/.ansible/project1/inventory/hosts.ini`:
+ Файл **`~/.ansible/project1/inventory/hosts.ini`**:
 ```ini
 [routers]
 router ansible_host=192.168.56.1
