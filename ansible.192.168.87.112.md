@@ -67,7 +67,7 @@ servers
 2. Секция `[servers]` содержит два сервера с их IP-адресами
 3. Секция `[all:children]` объединяет группы routers и servers в одну группу all
 
-Файл `ansible.cfg`:
+Файл **`ansible.cfg`**:
 ```cfg
 [defaults]
 inventory = ./inventory/hosts.ini
