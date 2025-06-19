@@ -43,7 +43,7 @@ ssh -i ~/.ssh/id_rsa root@192.168.56.3
 |   `-- hosts.ini        # инвентарный файл
 |-- playbooks
 |   `-- site.yml         # основной плейбук
-`-- roles                # роли
+`-- roles                # директория с ролями
 ```
 
 ```bash
