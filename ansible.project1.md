@@ -54,6 +54,7 @@ cd ~/.ansible/project
  **Файл **`~/.ansible/project1/inventory/hosts.ini`**:**
 ```ini
 [masters]
+# check group_vars/masters/ssh.yml
 #test-gw ansible_host=192.168.87.112 ansible_user=ansible
 test-gw ansible_host=192.168.87.112 ansible_user=root ansible_ssh_common_args=''
 kiko0217 ansible_host=192.168.87.136 ansible_user=root
@@ -110,7 +111,7 @@ ansible_ssh_common_args='-o BindAddress=192.168.56.1'
 - **Если маршрутизация по умолчанию ведёт не туда** (например, дефолтный шлюз `192.168.87.1`, а нужно идти через `192.168.56.1`).
 - **Если фаервол или политики сети требуют строгого контроля исходящих интерфейсов**.
 
----
+-----
 
 #### **Альтернативные решения с подключением по определённому интерфейсу**
 Если не хочется прописывать `ansible_ssh_common_args` для каждого хоста, можно:
@@ -195,4 +196,20 @@ Last login: Thu Jun 19 10:39:09 2025 from 192.168.56.1
     "discovered_interpreter_python": "/usr/bin/python3"
 }
 ```
+
+-----
+
+**Файлы **переменных в `~/.ansible/project1/group_vars/..`**:**
+<br/> С учётом специфики оборудования и применения SSH соединения с локальной сетю, в которой управляющие машины, было создано исключение для группы masters в файле `group_vars/masters/ssh.yml`. 
+Важно отметить, что публичные ключи ещё не раздавались между 87.112 и 87.136, т.е. будет закномерная ошибка в случае пинга, но пока что оставим эту пробелму, т.к. управлять нжно машинами 56.2 и 56.3.
+```ini
+┌─ root ~/.ansible/project1 
+─ test-gw 
+└─ # pcat group_vars/masters/ssh.yml 
+---
+ansible_ssh_common_args: ''
+```
+
+
+
 
