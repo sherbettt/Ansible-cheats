@@ -330,6 +330,15 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
       ansible.builtin.debug:
         msg: "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
 
+    - name: Gather and display system information (OS, CPU, RAM, Processes)
+      ansible.builtin.debug:
+        msg: |
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }} (Kernel: {{ ansible_kernel }})
+          CPU: {{ ansible_processor_vcpus }} vCPUs ({{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }})
+          Total RAM: {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
+          Free RAM: {{ (ansible_memfree_mb / 1024) | round(2) }} GB
+          Running processes: {{ ansible_facts['ansible_lsb']['processes'] if 'ansible_lsb' in ansible_facts and 'processes' in ansible_facts['ansible_lsb'] else 'N/A' }}
+
     - name: Update all packages to their latest version
       ansible.builtin.apt:
         name: "*"
