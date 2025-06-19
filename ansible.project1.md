@@ -333,6 +333,7 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
     - name: Gather and display system information (OS, CPU, RAM, Processes)
       ansible.builtin.debug:
         msg: |
+          Ansible version: {{ansible_version}}
           OS: {{ ansible_distribution }} {{ ansible_distribution_version }} (Kernel: {{ ansible_kernel }})
           CPU: {{ ansible_processor_vcpus }} vCPUs ({{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }})
           Total RAM: {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
