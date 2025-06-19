@@ -51,21 +51,22 @@ cd ~/.ansible/project
 
  Файл **`~/.ansible/project1/inventory/hosts.ini`**:
 ```ini
-[routers]
-router ansible_host=192.168.56.1
+[masters]
+test-gw ansible_host=192.168.87.112 ansible_user=root
+#kiko0217 ansible_host=192.168.87.136 ansible_user=root
 
-[servers]
-server1 ansible_host=192.168.56.2
-server2 ansible_host=192.168.56.3
+[clients]
+test-lan ansible_host=192.168.56.2
+test-lan2 ansible_host=192.168.56.3
 
 [all:children]
-routers
-servers
+masters
+clients
 ```
 где:
-1. Секция `[routers]` содержит хост router с указанием его IP-адреса
-2. Секция `[servers]` содержит два сервера с их IP-адресами
-3. Секция `[all:children]` объединяет группы routers и servers в одну группу all
+1. Секция `[masters]` содержит хосты управляющих машиг с указанием их IP-адреса и ansible-пользователя
+2. Секция `[clients]` содержит два управляемых сервера с их IP-адресами
+3. Секция `[all:children]` объединяет группы masters и clients в одну группу all
 
 Файл **`ansible.cfg`**:
 ```ini
