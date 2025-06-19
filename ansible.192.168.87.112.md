@@ -68,45 +68,31 @@ servers
 3. Секция `[all:children]` объединяет группы routers и servers в одну группу all
 
 Файл **`ansible.cfg`**:
-```cfg
+```ini
 [defaults]
 inventory = ./inventory/hosts.ini
-remote_user = ansible  # Лучше не root
-become = True
-become_user = root
-host_key_checking = False
+remote_user = ansible  # vs root
+host_key_checking = True
 log_path = /var/log/ansible.log
 forks = 1
 gathering = smart
-#timeout = 10  # Добавлено для надёжности SSH-сессий
+#timeout = 10  # SSH timeout
 
-# Кэширование фактов
+# Caching of facts
 fact_caching = jsonfile
 fact_caching_connection = ./facts_cache
-fact_caching_timeout = 0 # В некоторых версиях Ansible это отключает таймаут
-
-# Кеширование фактов неограниченное кол-во
-# fact_caching = never_expire
-# fact_caching_connection = ./facts_cache
-# fact_caching_timeout можно не указывать
+fact_caching_timeout = 0
 
 [privilege_escalation]
-become_method = sudo  # Явное указание метода повышения прав
+become = True
+become_method = sudo
+become_user = root
+become_ask_pass = False
+
+#[ssh_connection]
+#host_key_checking = true
 ```
 Проверка параметров командой: `ansible-config dump --only-changed`
 
 
-| Параметр                     | Состояние | Комментарий |
-|-------------------------------|-----------|-------------|
-| `inventory = ./inventory/hosts.ini` | ✅ | Правильный путь к INI-инвентарю. |
-| `remote_user = root`          | ✅ | Явное указание пользователя. |
-| `become = True` + `become_user = root` | ✅ | Автоматическое повышение прав (аналог `sudo -i`). |
-| `host_key_checking = False`    | ✅ | Для тестовой среды — норма. |
-| `log_path = /var/log/ansible.log` | ✅ | Логирование в файл (убедитесь, что есть права на запись). |
-| `forks = 1`                   | ✅ | Соответствует требованиям RUNTEL.RU (последовательное выполнение). |
-| `gathering = smart`           | ✅ | Оптимальный выбор для кэширования фактов. |
-| `fact_caching = jsonfile`     | ✅ | Корректный формат кэша. |
-| `fact_caching_connection = ./facts_cache` | ✅ | Локальное хранение кэша. |
-| `fact_caching_timeout = 86400` | ✅ | Актуальность данных — 24 часа. |
-| `fact_caching_timeout = 9999999999` | ✅ | Актуальность данных — ~317 лет в секундах. |
 
