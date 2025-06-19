@@ -263,9 +263,26 @@ ansible_ssh_common_args: ''
       ansible.builtin.ping:
 
 ```
+Проверим синтаксис плейбука: 
+```bash
+┌─ root ~/.ansible/project1/playbooks 
+─ test-gw 
+└─ # ansible-playbook -i /root/.ansible/project1/inventory/hosts.ini --syntax-check ping.yml        
+
+playbook: ping.yml
+```
+
 А чтобы запустить данный плейбук, необходимо к нему обратиться напрямую (или поместить его в директорию в инвенторкой):
 ```bash
 ┌─ root ~/.ansible/project1/playbooks 
 ─ test-gw 
 └─ # ansible-playbook -i /root/.ansible/project1/inventory/hosts.ini ping.yml
 ```
+
+Запустить данный плейбук c повышенной детализацией:
+```bash
+┌─ root ~/.ansible/project1/playbooks 
+─ test-gw 
+└─ # ansible-playbook -vv -i /root/.ansible/project1/inventory/hosts.ini ping.yml
+```
+
