@@ -281,4 +281,12 @@ playbook: ping.yml
 └─ # ansible-playbook -vv -i /root/.ansible/project1/inventory/hosts.ini ping.yml
 ```
 
+#### Создадим более сложный плейбук: установим приложения
+См. страницу [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module)
+
+
+
+
+
+
 
