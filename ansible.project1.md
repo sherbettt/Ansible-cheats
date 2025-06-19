@@ -159,7 +159,7 @@ host_key_checking = true
 # ssh_args = -o BindAddress=192.168.56.1
 ```
 Проверка параметров командой: `ansible-config dump --only-changed`
-Проверка всех машин из инвенторки: `ansible all -m ping -vvv`
+<br/> Проверка всех машин из инвенторки: `ansible all -m ping -vvv`
 
 ----
 
