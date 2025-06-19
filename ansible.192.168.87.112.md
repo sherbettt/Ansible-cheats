@@ -34,18 +34,20 @@ ssh -i ~/.ssh/id_rsa root@192.168.56.3
 Структура проекта будет выглядеть примерно так на начальном этапе:
 ```
 ~/.ansible/project1/
-├── inventory/
-│   ├── hosts.ini          # Инвентарный файл
-├── group_vars/
-│   └── all.yml            # Общие переменные
-├── playbooks/
-│   └── site.yml           # Основной playbook
-└── ansible.cfg            # Конфигурация Ansible
+.
+|-- ansible.cfg          # Конф. файл
+|-- facts_cache          # кеш фактов
+|-- group_vars
+|   `-- all.yml          # основные переменные
+|-- inventory
+|   `-- hosts.ini        # инвентарный файл
+|-- playbooks
+|   `-- site.yml         # основной плейбук
+`-- roles                # роли
 ```
 
-
 ```bash
-mkdir -p ~/.ansible/project1/{inventory,group_vars,roles}
+mkdir -p ~/.ansible/project1/{inventory,group_vars,roles,playbooks}
 cd ~/.ansible/project
 ```
 
