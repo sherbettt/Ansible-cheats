@@ -4,6 +4,7 @@
 <br/> [Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task) ,
 <br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/) ,
 <br/> [Indexes of all modules and plugins](https://docs.ansible.com/ansible/latest/collections/all_plugins.html)
+<br/> [Discovering variables: facts and magic variables](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html)
 
 <br/> [Templating (Jinja2)](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html) -> [Jinja2 Docs](https://jinja.palletsprojects.com/en/latest/templates/)
  
