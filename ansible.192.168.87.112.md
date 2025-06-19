@@ -56,8 +56,12 @@ test-gw ansible_host=192.168.87.112 ansible_user=root
 #kiko0217 ansible_host=192.168.87.136 ansible_user=root
 
 [clients]
-test-lan ansible_host=192.168.56.2 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
-test-lan2 ansible_host=192.168.56.3 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
+test-lan ansible_host=192.168.56.2 ansible_user=root
+test-lan2 ansible_host=192.168.56.3 ansible_user=root
+
+#[clients]
+#test-lan ansible_host=192.168.56.2 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
+#test-lan2 ansible_host=192.168.56.3 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
 
 [all:children]
 masters
@@ -127,8 +131,7 @@ ip route add 192.168.56.0/24 dev eth1
 ```ini
 [defaults]
 inventory = ./inventory/hosts.ini
-remote_user = ansible  # vs root
-host_key_checking = True
+remote_user = root  # there is no ansible user
 log_path = /var/log/ansible.log
 forks = 1
 gathering = smart
@@ -145,8 +148,9 @@ become_method = sudo
 become_user = root
 become_ask_pass = False
 
-#[ssh_connection]
-#host_key_checking = true
+[ssh_connection]
+host_key_checking = true
+ssh_args = -o BindAddress=192.168.56.1
 ```
 Проверка параметров командой: `ansible-config dump --only-changed`
 
