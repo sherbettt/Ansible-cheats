@@ -68,7 +68,12 @@ gathering = smart
 # Кэширование фактов
 fact_caching = jsonfile
 fact_caching_connection = ./facts_cache
-fact_caching_timeout = 86400
+fact_caching_timeout = 0 # В некоторых версиях Ansible это отключает таймаут
+
+# Кеширование неограниченное
+# fact_caching = never_expire
+# fact_caching_connection = ./facts_cache
+# fact_caching_timeout можно не указывать
 
 [privilege_escalation]
 become_method = sudo  # Явное указание метода повышения прав
@@ -86,4 +91,5 @@ become_method = sudo  # Явное указание метода повышен�
 | `fact_caching = jsonfile`     | ✅ | Корректный формат кэша. |
 | `fact_caching_connection = ./facts_cache` | ✅ | Локальное хранение кэша. |
 | `fact_caching_timeout = 86400` | ✅ | Актуальность данных — 24 часа. |
+| `fact_caching_timeout = 9999999999` | ✅ | Актуальность данных — ~317 лет в секундах. |
 
