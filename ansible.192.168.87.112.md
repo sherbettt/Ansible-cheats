@@ -169,20 +169,20 @@ test-lan | SUCCESS => {
     "changed": false,
     "ping": "pong"
 }
+```
 
+```ini
 ┌─ root ~/.ansible/project1 
 ─ test-gw 
 └─ # ssh root@192.168.56.2 -o BindAddress=192.168.56.1
 Linux test-lan 6.8.12-9-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.12-9 (2025-03-16T19:18Z) x86_64
-
-The programs included with the Debian GNU/Linux system are free software;
-the exact distribution terms for each program are described in the
-individual files in /usr/share/doc/*/copyright.
-
+....
 Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
 permitted by applicable law.
 Last login: Thu Jun 19 10:39:09 2025 from 192.168.56.1
+```
 
+```ini
 ┌─ root ~/.ansible/project1 
 ─ test-gw 
 └─ # pcat facts_cache/test-lan
