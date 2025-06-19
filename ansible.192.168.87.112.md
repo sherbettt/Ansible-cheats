@@ -182,5 +182,12 @@ individual files in /usr/share/doc/*/copyright.
 Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
 permitted by applicable law.
 Last login: Thu Jun 19 10:39:09 2025 from 192.168.56.1
+
+┌─ root ~/.ansible/project1 
+─ test-gw 
+└─ # pcat facts_cache/test-lan
+{
+    "discovered_interpreter_python": "/usr/bin/python3"
+}
 ```
 
