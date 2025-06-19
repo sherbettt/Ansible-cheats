@@ -284,6 +284,25 @@ playbook: ping.yml
 #### Создадим более сложный плейбук: установим приложения
 См. страницу [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module)
 
+```bash
+┌─ root ~/.ansible/project1/playbooks 
+─ test-gw 
+└─ # pcat apt-py.yml
+```
+
+```yaml
+---
+- name: Basic APT management
+  hosts: clients
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Update repositories cache and install "python" package
+      ansible.builtin.apt:
+        update_cache: yes
+        name: python3.11-full
+```
 
 
 
