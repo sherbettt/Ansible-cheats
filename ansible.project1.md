@@ -240,7 +240,7 @@ ansible_ssh_common_args: ''
 |   `-- ping.yml
 `-- roles
 ```
-
+### 3. Создание playbook'а
 #### Создадим простой плейбук для пинга клиентских машин
 Не забывайте про двойные отступы.
 <br/> См. страницу [ansible.builtin.ping module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ping_module.html#ansible-collections-ansible-builtin-ping-module)
@@ -282,7 +282,8 @@ playbook: ping.yml
 ```
 
 #### Создадим более сложный плейбук: установим приложения
-См. страницу [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module)
+См. [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module)
+<br/> См. [Error handling in playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html) -> искать `changed_when:`, 
 
 ```bash
 ┌─ root ~/.ansible/project1/playbooks 
