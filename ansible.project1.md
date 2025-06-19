@@ -281,6 +281,16 @@ playbook: ping.yml
 └─ # ansible-playbook -vv -i /root/.ansible/project1/inventory/hosts.ini ping.yml
 ```
 
+Чтобы узнать все факты об ОС на клиенсткой машине, можно воспользоваться Ad-Hoc командой и при помощи grep фильтровать данные:
+```bash
+ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.setup
+
+└─ # ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.setup | grep mem
+        "ansible_memfree_mb": 371,
+        "ansible_memory_mb": {
+        "ansible_memtotal_mb": 2048,
+```
+
 #### Создадим более сложный плейбук: установим приложения
 См. [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module)
 <br/> См. [Error handling in playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html) -> искать `changed_when:`, 
