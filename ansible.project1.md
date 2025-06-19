@@ -288,7 +288,7 @@ playbook: ping.yml
 ```bash
 ┌─ root ~/.ansible/project1/playbooks 
 ─ test-gw 
-└─ # pcat apt-py.yml
+└─ # cat apt-install.yml
 ```
 
 ```yaml
@@ -296,13 +296,29 @@ playbook: ping.yml
 - name: Basic APT management
   hosts: clients
   become: true
-  gather_facts: false
+  gather_facts: true
 
   tasks:
-    - name: Update repositories cache and install "python" package
+    - name: Update all packages to their latest version
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+
+    - name: Update repositories cache and install "python" and "postgreql" packages
       ansible.builtin.apt:
         update_cache: yes
-        name: python3.11-full
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - python3.11-full
+          - postgresql
+
+    - name: Check Python version after update
+      ansible.builtin.command: python3 --version
+      register: python_version
+      changed_when: false
+
 ```
 
 
