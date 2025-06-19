@@ -220,6 +220,25 @@ Last login: Thu Jun 19 10:39:09 2025 from 192.168.56.1
 ansible_ssh_common_args: ''
 ```
 
-
+### 3. Пишем playbook.
+Итак, сейчас структура изменилась и выглядит по-другому:
+```
+~/.ansible/project1/
+.
+|-- ansible.cfg
+|-- facts_cache
+|   |-- test-lan
+|   `-- test-lan2
+|-- group_vars
+|   |-- all.yml
+|   `-- masters
+|       `-- ssh.yml
+|-- inventory
+|   `-- hosts.ini
+|-- playbooks
+|   |-- install.yml
+|   `-- ping.yml
+`-- roles
+```
 
 
