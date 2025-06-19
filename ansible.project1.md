@@ -284,6 +284,7 @@ playbook: ping.yml
 #### Создадим более сложный плейбук: установим приложения
 См. [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module)
 <br/> См. [Error handling in playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html) -> искать `changed_when:`, 
+<br/> См. [Discovering variables: facts and magic variables](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html) 
 
 ```bash
 ┌─ root ~/.ansible/project1/playbooks 
@@ -304,7 +305,21 @@ playbook: ping.yml
     ansible_user: root
     ansible_ssh_private_key_file: "~/.ssh/id_rsa"  # path to your ssh pub key
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module
   tasks:
+    - name: Return motd to registered var
+      ansible.builtin.command: cat /etc/os-release
+      register: motd
+
+    - name: Display all variables/facts known for a host
+      ansible.builtin.debug:
+        var: hostvars[inventory_hostname]
+        verbosity: 4
+
+    - name: Check OS and version
+      ansible.builtin.debug:
+        msg: "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
     - name: Update all packages to their latest version
       ansible.builtin.apt:
         name: "*"
