@@ -12,6 +12,8 @@
   - установить postgreql;
   - создать template postgresql.j2
 
+См.: []()
+
 -----------------------------------------------------------------------
 ## Ansible на роутере.
 
@@ -26,8 +28,13 @@
 └── roles/
 ```
 
- Файл `inventory/hosts.ini`:
+Создадим структура проекта:
+```bash
+mkdir -p ~/.ansible/project1/{inventory,group_vars,roles}
+cd ~/.ansible/project
+```
 
+ Файл `~/.ansible/project1/inventory/hosts.ini`:
 ```ini
 [routers]
 router ansible_host=192.168.56.1
@@ -45,4 +52,38 @@ servers
 2. Секция `[servers]` содержит два сервера с их IP-адресами
 3. Секция `[all:children]` объединяет группы routers и servers в одну группу all
 
+Файл `ansible.cfg`:
+```cfg
+[defaults]
+inventory = ./inventory/hosts.ini
+remote_user = ansible  # Лучше не root
+become = True
+become_user = root
+host_key_checking = False
+log_path = /var/log/ansible.log
+forks = 1
+gathering = smart
+#timeout = 10  # Добавлено для надёжности SSH-сессий
+
+# Кэширование фактов
+fact_caching = jsonfile
+fact_caching_connection = ./facts_cache
+fact_caching_timeout = 86400
+
+[privilege_escalation]
+become_method = sudo  # Явное указание метода повышения прав
+```
+
+| Параметр                     | Состояние | Комментарий |
+|-------------------------------|-----------|-------------|
+| `inventory = ./inventory/hosts.ini` | ✅ | Правильный путь к INI-инвентарю. |
+| `remote_user = root`          | ✅ | Явное указание пользователя. |
+| `become = True` + `become_user = root` | ✅ | Автоматическое повышение прав (аналог `sudo -i`). |
+| `host_key_checking = False`    | ✅ | Для тестовой среды — норма. |
+| `log_path = /var/log/ansible.log` | ✅ | Логирование в файл (убедитесь, что есть права на запись). |
+| `forks = 1`                   | ✅ | Соответствует требованиям RUNTEL.RU (последовательное выполнение). |
+| `gathering = smart`           | ✅ | Оптимальный выбор для кэширования фактов. |
+| `fact_caching = jsonfile`     | ✅ | Корректный формат кэша. |
+| `fact_caching_connection = ./facts_cache` | ✅ | Локальное хранение кэша. |
+| `fact_caching_timeout = 86400` | ✅ | Актуальность данных — 24 часа. |
 
