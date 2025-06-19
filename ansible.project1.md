@@ -54,16 +54,18 @@ cd ~/.ansible/project
  **Файл **`~/.ansible/project1/inventory/hosts.ini`**:**
 ```ini
 [masters]
-test-gw ansible_host=192.168.87.112 ansible_user=root
-#kiko0217 ansible_host=192.168.87.136 ansible_user=root
-
-[clients]
-test-lan ansible_host=192.168.56.2 ansible_user=root
-test-lan2 ansible_host=192.168.56.3 ansible_user=root
+#test-gw ansible_host=192.168.87.112 ansible_user=ansible
+test-gw ansible_host=192.168.87.112 ansible_user=root ansible_ssh_common_args=''
+kiko0217 ansible_host=192.168.87.136 ansible_user=root
 
 #[clients]
-#test-lan ansible_host=192.168.56.2 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
-#test-lan2 ansible_host=192.168.56.3 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
+#test-lan ansible_host=192.168.56.2 ansible_user=root
+#test-lan2 ansible_host=192.168.56.3 ansible_user=root
+
+# To allow route through eth1 192.168.56.1 
+[clients]
+test-lan ansible_host=192.168.56.2 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
+test-lan2 ansible_host=192.168.56.3 ansible_user=root ansible_ssh_common_args='-o BindAddress=192.168.56.1'
 
 [all:children]
 masters
@@ -152,9 +154,11 @@ become_ask_pass = False
 
 [ssh_connection]
 host_key_checking = true
-ssh_args = -o BindAddress=192.168.56.1
+# This condition will be applied for all machines
+# ssh_args = -o BindAddress=192.168.56.1
 ```
 Проверка параметров командой: `ansible-config dump --only-changed`
+Проверка всех машин из инвенторки: `ansible all -m ping -vvv`
 
 ----
 
