@@ -241,4 +241,31 @@ ansible_ssh_common_args: ''
 `-- roles
 ```
 
+#### Создадим простой плейбук для пинга клиентских машин
+Не забывайте про двойные отступы.
+<br/> См. страницу [ansible.builtin.ping module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ping_module.html#ansible-collections-ansible-builtin-ping-module)
+```yaml
+┌─ root ~/.ansible/project1 
+─ test-gw 
+└─ # pcat playbooks/ping.yml 
+---
+- name: PING clients machines
+  hosts: clients
+  become: true
+  gather_facts: true
 
+  vars:
+    ansible_user: root
+    ansible_ssh_private_key_file: "~/.ssh/id_rsa"  # path to your ssh pub key
+
+  tasks:
+    - name: Just for ping
+      ansible.builtin.ping:
+
+```
+А чтобы запустить данный плейбук, необходимо к нему обратиться напрямую (или поместить его в директорию в инвенторкой):
+```bash
+┌─ root ~/.ansible/project1/playbooks 
+─ test-gw 
+└─ # ansible-playbook -i /root/.ansible/project1/inventory/hosts.ini ping.yml
+```
