@@ -298,6 +298,12 @@ playbook: ping.yml
   become: true
   gather_facts: true
 
+# The current variables do not need to be specified here.
+# You may comment them.
+  vars:
+    ansible_user: root
+    ansible_ssh_private_key_file: "~/.ssh/id_rsa"  # path to your ssh pub key
+
   tasks:
     - name: Update all packages to their latest version
       ansible.builtin.apt:
