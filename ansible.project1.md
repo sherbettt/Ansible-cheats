@@ -166,7 +166,7 @@ become_ask_pass = False
 [ssh_connection]
 host_key_checking = true
 # This condition will be applied for all machines
-# ssh_args = -o BindAddress=192.168.56.1
+ssh_args = -o BindAddress=192.168.56.1
 ```
 Проверка параметров командой: `ansible-config dump --only-changed`
 <br/> Проверка всех машин из инвенторки: `ansible all -m ping -vvv` и `ansible clients -m ping -vv`
