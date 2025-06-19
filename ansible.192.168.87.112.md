@@ -12,7 +12,8 @@
   - установить postgreql;
   - создать template postgresql.j2
 
-См.: []()
+См.: [Описание и пример ansible.cfg](https://github.com/sherbettt/Ansible-cheats/blob/main/03.%20Описание%20и%20пример%20ansible.cfg.md), 
+[Условие when](https://github.com/sherbettt/Ansible-cheats/blob/main/50.%20Условие%20when.md)
 
 -----------------------------------------------------------------------
 ## Ansible на роутере.
