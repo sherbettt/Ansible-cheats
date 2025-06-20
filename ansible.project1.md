@@ -289,6 +289,10 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
         "ansible_memfree_mb": 371,
         "ansible_memory_mb": {
         "ansible_memtotal_mb": 2048,
+или
+
+ansible -i /root/.ansible/project1/inventory/hosts.ini test-lan -m debug -a 'var=ansible_date_time'
+ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=ansible_date_time,ansible_default_ipv4
 ```
 
 #### Создадим более сложный плейбук: установим приложения и соберём инфо о клиентских машинах
