@@ -8,6 +8,20 @@
    port = {{ postgresql_port }}
    ```
 
+Размер памяти для postgresql можно посчитать, написав скрипт:
+```bash
+#!/bin/bash
+
+# Получаем общий объём RAM в KB
+total_ram_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+
+# Вычисляем 25% в MB
+shared_buffers_mb=$(($total_ram_kb * 25 / 100 / 1024))
+
+echo "shared_buffers = ${shared_buffers_mb}MB"
+```
+   
+
 2. **Настройки Write-Ahead Log (WAL):**
    ```jinja2
    wal_level = '{{ postgresql_wal_level }}'
@@ -38,6 +52,8 @@
    ```jinja2
    password_encryption = '{{ postgresql_password_encryption }}'
    ```
+
+
 
 ---
 
