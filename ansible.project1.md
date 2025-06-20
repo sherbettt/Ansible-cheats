@@ -309,6 +309,22 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
 <br/> См. [Error handling in playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html) -> искать `changed_when:`, 
 <br/> См. [Discovering variables: facts and magic variables](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html) 
 
+```yaml
+└─ # pcat playbooks/all_facts.yml 
+---
+- name: Write hostname
+  hosts: clients
+  tasks:
+
+    - name: Print all available facts
+      ansible.builtin.debug:
+        var: ansible_facts
+
+    - name: Print hostname facts
+      ansible.builtin.debug:
+        var: ansible_facts.hostname
+```
+
 
 ```yaml
 # root/.ansible/project1/playbooks/apt-install.yml
