@@ -14,7 +14,6 @@
 <br/> [Building Ansible inventories](https://docs.ansible.com/ansible/latest/inventory_guide/index.html)
 <br/> [Ansible CLI cheatsheet](https://docs.ansible.com/ansible/latest/command_guide/cheatsheet.html)
 
-[Примеры работы с Ansible](https://www.dmosk.ru/miniinstruktions.php?mini=ansible-examples)
 ---
-
-ещё одна [Шпаргалка по Ansible](https://github.com/horv1tz/useful/blob/main/DevOps/Ansible.md)
+[Примеры работы с Ansible](https://www.dmosk.ru/miniinstruktions.php?mini=ansible-examples)
+<br/> ещё одна [Шпаргалка по Ansible](https://github.com/horv1tz/useful/blob/main/DevOps/Ansible.md)
