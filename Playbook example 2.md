@@ -100,6 +100,13 @@ postgresql_maintenance_work_mem: "256MB"
 postgresql_effective_cache_size: "{{ (ansible_memtotal_mb * 0.6) | int }}MB"
 ```
 
+Запустить в тестовом режиме
+```bsah
+┌─ root ~/.ansible/project1/playbooks 
+─ test-gw 
+└─ # ansible-playbook -C -i ~/.ansible/project1/inventory/hosts.ini 05_psql-conf.yml -v
+```
+
 
 ### Причина ошибок:
 1. В одном из файлов (скорее всего в `psql_var.yml` или шаблоне) содержатся символы, которые не могут быть корректно обработаны в UTF-8
