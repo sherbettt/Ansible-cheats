@@ -101,10 +101,15 @@
   hosts: clients
   become: true
   gather_facts: true
+
   vars:
     - pg_config_cmd: "pg_config --version"
     - pg_etc_path: "/etc/postgresql"
     - pg_main_folder: "main"
+
+# Либо выше указанные переменные можно определить в отдельном файле
+#  vars_files:
+#    - /root/.ansible/project1/group_vars/psql_vars.yml
 
   tasks:
 
