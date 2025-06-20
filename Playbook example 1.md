@@ -53,16 +53,20 @@
       ansible.builtin.debug:
         var: py_vers.stdout
 
+
+    # Узнать версию Postgresql командой pg_config --version
+    # И записать в переменную pg_version
     - name: Check Postgresql version after update
       ansible.builtin.command: pg_config --version
       register: pg_version
       changed_when: false
 
+    # Вывести на экран версию - значение переменной pg_version
     - name: Display Postgresql version
       ansible.builtin.debug:
         var: pg_version.stdout
 
-     # Получить номер версии из переменой pg_version
+     # Сократить pg_version до цифрого значения
     - name: Get PostgreSQL version (short form, e.g., "16")
       ansible.builtin.set_fact:
         pg_short_version: "{{ pg_version.stdout.split('.')[0] | regex_replace('[^0-9]', '') }}"
@@ -72,7 +76,7 @@
       ansible.builtin.debug:
         msg: "PostgreSQL short version: {{ pg_short_version }}"
 
-      # Получить контент папки
+      # Зафиксировать результат в переменной pg_folder
     - name: Redister PSQL folder
       ansible.builtin.command: ls -alF /etc/postgresql/{{ pg_short_version }}/main
       register: pg_folder
