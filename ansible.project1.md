@@ -389,49 +389,66 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
 ######
 
 ---
-- name: Basic APT management and facts gathering
+- name: Basic APT management
   hosts: clients
   become: true
   gather_facts: true
 
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module
   tasks:
-    - name: Gather system facts
-      setup:
-        gather_subset: all
 
-    - name: Display system information
-      debug:
+    - name: Gather and display system information (OS, CPU, RAM, Processes)
+      ansible.builtin.debug:
         msg: |
-          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
-          Kernel: {{ ansible_kernel }}
-          CPU: {{ ansible_processor_vcpus }} vCPUs
-          RAM: {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
+          Ansible version: {{ansible_version}}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }} (Kernel: {{ ansible_kernel }})
+          CPU: {{ ansible_processor_vcpus }} vCPUs ({{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }})
+          Total RAM: {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
+          Free RAM: {{ (ansible_memfree_mb / 1024) | round(2) }} GB
+          Running processes: {{ ansible_facts['ansible_lsb']['processes'] if 'ansible_lsb' in ansible_facts and 'processes' in ansible_facts['ansible_lsb'] else 'N/A' }}
 
-    - name: Update all packages
-      apt:
+    - name: Update all packages to their latest version
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+
+    - name: Update repositories cache and install "python" and "postgreql" packages
+      ansible.builtin.apt:
         update_cache: yes
-        upgrade: dist
-
-    - name: Install Python and PostgreSQL
-      apt:
-        name:
-          - "python{{ python_version }}-full"
-          - "postgresql-{{ postgresql_version }}"
-          - "postgresql-client-{{ postgresql_version }}"
+        name: "{{ packages }}"
         state: present
+      vars:
+        packages:
+          - python3.11-full
+          - postgresql
 
     - name: Check Python version after update
       ansible.builtin.command: python3 --version
-      register: python_version
+      register: py_vers
       changed_when: false
 
-    - name: Check Postgresql version after update
+# More Informative stdout
+#    - name: Print Py version on a screen
+#      ansible.builtin.debug:
+#        msg: Version is {{ py_vers }} /*/
+
+    - name: Display Python version
+      ansible.builtin.debug:
+        var: py_vers.stdout
+
+    - name: Check Postgresql version on a screen
       ansible.builtin.command: pg_config --version
       register: pg_version
       changed_when: false
+
+    - name: Display Postgresql version
+      ansible.builtin.debug:
+        var: pg_version.stdout
 ```
 
 Создаём template `templates/postgresql.j2`
+
+
 
 А теперь плейбук для конфигурации postgresql
 ```yaml
