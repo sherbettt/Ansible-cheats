@@ -460,8 +460,6 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
 ```yaml
 # root/.ansible/project1/playbooks/postgresql-setup.yml
 ######
-
-
 ---
 - name: Configure PostgreSQL using template
   hosts: clients
