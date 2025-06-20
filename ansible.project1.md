@@ -451,6 +451,10 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
 
 
 А теперь плейбук для конфигурации postgresql
+<br/> См. [postgresql_db_module](https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_db_module.html)
+<br/> См. [postgresql_user_module](https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_user_module.html#ansible-collections-community-postgresql-postgresql-user-module) 
+<br/> См. [postgresql_pg_hba_module](https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_pg_hba_module.html)
+
 ```yaml
 # root/.ansible/project1/playbooks/postgresql-setup.yml
 ######
