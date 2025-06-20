@@ -419,6 +419,16 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
           - "postgresql-{{ postgresql_version }}"
           - "postgresql-client-{{ postgresql_version }}"
         state: present
+
+    - name: Check Python version after update
+      ansible.builtin.command: python3 --version
+      register: python_version
+      changed_when: false
+
+    - name: Check Postgresql version after update
+      ansible.builtin.command: pg_config --version
+      register: pg_version
+      changed_when: false
 ```
 
 Создаём template `templates/postgresql.j2`
