@@ -25,6 +25,8 @@
           - postgresql_ram_shared is defined
           - postgresql_ram_cache is defined
 
+
+ # Определение версии postgresql
     - name: Check Postgresql version after update
       ansible.builtin.command: "{{ pg_config_cmd }}"
       register: pg_version
@@ -42,6 +44,9 @@
       ansible.builtin.set_fact:
         postgresql_ram_shared: "{{ (ansible_memtotal_mb * 0.25) | int }}MB"
 
+
+  # Именно здесь будет копирование шаблона j2 на машины
+  # и перезапуск сервиса по notify
     - name: Copy postgresql.conf with templating
       ansible.builtin.template:
         src: /root/.ansible/project1/templates/postgresql.conf.j2
