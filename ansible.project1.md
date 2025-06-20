@@ -463,29 +463,30 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
 
 
 ---
-- name: Configure PostgreSQL
+- name: Configure PostgreSQL using template
   hosts: clients
   become: true
 
   tasks:
-    - name: Copy PostgreSQL configuration template
-      template:
-        src: ../../templates/postgresql.j2
-        dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+    - name: Copy postgresql.conf with templating
+      ansible.builtin.template:
+        src: /root/.ansible/project1/templates/postgresql.j2
+        dest: /etc/postgresql/<version>/main/postgresql.conf
         owner: postgres
         group: postgres
-        mode: '0640'
-      notify: restart postgresql
+        mode: '0644'
+    notify: restart postgresql
 
-    - name: Ensure PostgreSQL is running
-      service:
-        name: postgresql
+    - name: Ensure PSQL is running
+      ansible.builtin.service:
+        name: postgresql  #postgres
         state: started
-        enabled: yes
+        enabled: true
 
+# Условие для директивы notify
   handlers:
     - name: restart postgresql
-      service:
+      ansible.builtin.service:
         name: postgresql
         state: restarted
 ```
