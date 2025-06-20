@@ -109,7 +109,7 @@
 
 # Либо выше указанные переменные можно определить в отдельном файле
 #  vars_files:
-#    - /root/.ansible/project1/group_vars/psql_vars.yml
+#    - /root/.ansible/project1/group_vars/clients/psql_vars.yml
 
   tasks:
 
