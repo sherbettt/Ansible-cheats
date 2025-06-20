@@ -291,18 +291,16 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
         "ansible_memtotal_mb": 2048,
 ```
 
-#### Создадим более сложный плейбук: установим приложения
+#### Создадим более сложный плейбук: установим приложения и соберём инфо о клиентских машинах
 См. [ansible.builtin.apt module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module)
 <br/> См. [Error handling in playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_error_handling.html) -> искать `changed_when:`, 
 <br/> См. [Discovering variables: facts and magic variables](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html) 
 
-```bash
-┌─ root ~/.ansible/project1/playbooks 
-─ test-gw 
-└─ # cat apt-install.yml
-```
 
 ```yaml
+# root/.ansible/project1/playbooks/apt-install.yml
+######
+
 ---
 - name: Basic APT management
   hosts: clients
@@ -362,8 +360,99 @@ ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.s
 
 ```
 
+#### Создадим несколько плейбуков под разные задачи.
+Снова изменим структуру Ansible проекта, добавиви плейбук для postgresql и изменив базовый apt-install.yml, а таже написать шаблон postgresql.j2.
+```
+/root/.ansible/project1/
+|-- ansible.cfg
+|-- facts_cache
+|   |-- test-lan
+|   `-- test-lan2
+|-- group_vars
+|   |-- all.yml
+|   `-- masters
+|       `-- ssh.yml
+|-- inventory
+|   `-- hosts.ini
+|-- playbooks
+|   |-- apt-install.yml
+|   |-- ping.yml
+|   `-- postgresql-setup.yml
+|-- roles
+`-- templates
+    `-- postgresql.j2
+```
+
+Перепишем базовый плейбук для установки приложений и сбора инфо.
+```yaml
+# root/.ansible/project1/playbooks/apt-install.yml
+######
+
+---
+- name: Basic APT management and facts gathering
+  hosts: clients
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Gather system facts
+      setup:
+        gather_subset: all
+
+    - name: Display system information
+      debug:
+        msg: |
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          Kernel: {{ ansible_kernel }}
+          CPU: {{ ansible_processor_vcpus }} vCPUs
+          RAM: {{ (ansible_memtotal_mb / 1024) | round(2) }} GB
+
+    - name: Update all packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install Python and PostgreSQL
+      apt:
+        name:
+          - "python{{ python_version }}-full"
+          - "postgresql-{{ postgresql_version }}"
+          - "postgresql-client-{{ postgresql_version }}"
+        state: present
+```
+
+Создаём template `templates/postgresql.j2`
+
+А теперь плейбук для конфигурации postgresql
+```yaml
+# root/.ansible/project1/playbooks/postgresql-setup.yml
+######
 
 
+---
+- name: Configure PostgreSQL
+  hosts: clients
+  become: true
 
+  tasks:
+    - name: Copy PostgreSQL configuration template
+      template:
+        src: ../../templates/postgresql.j2
+        dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+        owner: postgres
+        group: postgres
+        mode: '0640'
+      notify: restart postgresql
 
+    - name: Ensure PostgreSQL is running
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
 
+  handlers:
+    - name: restart postgresql
+      service:
+        name: postgresql
+        state: restarted
+```
