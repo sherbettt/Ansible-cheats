@@ -8,18 +8,18 @@
    port = {{ postgresql_port }}
    ```
 
-Размер памяти для postgresql можно посчитать, написав скрипт:
-```bash
-#!/bin/bash
+      Размер памяти для postgresql можно посчитать, написав скрипт:
+      ```bash
+      #!/bin/bash
 
-# Получаем общий объём RAM в KB
-total_ram_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+      # Получаем общий объём RAM в KB
+      total_ram_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 
-# Вычисляем 25% в MB
-shared_buffers_mb=$(($total_ram_kb * 25 / 100 / 1024))
+      # Вычисляем 25% в MB
+      shared_buffers_mb=$(($total_ram_kb * 25 / 100 / 1024))
 
-echo "shared_buffers = ${shared_buffers_mb}MB"
-```
+      echo "shared_buffers = ${shared_buffers_mb}MB"
+      ```
    
 
 2. **Настройки Write-Ahead Log (WAL):**
