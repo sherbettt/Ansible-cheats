@@ -245,24 +245,33 @@ ansible_ssh_common_args: ''
 Не забывайте про двойные отступы.
 <br/> См. страницу [ansible.builtin.ping module](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ping_module.html#ansible-collections-ansible-builtin-ping-module)
 ```yaml
-┌─ root ~/.ansible/project1 
-─ test-gw 
-└─ # pcat playbooks/ping.yml 
+# ~/.ansible/project1/playbooks
+#####
 ---
 - name: PING clients machines
-  hosts: clients
+  hosts:
+#    - masters
+    - clients
   become: true
   gather_facts: true
+  vars_files:
+    - /root/.ansible/project1/group_vars/masters/ssh.yml
+#    - ../../group_vars/masters/ssh.yml
 
   vars:
     ansible_user: root
-    ansible_ssh_private_key_file: "~/.ssh/id_rsa"  # path to your ssh pub key
+    ansible_ssh_private_key_file: "~/.ssh/id_rsa"  # path to your ssh private key
 
   tasks:
-    - name: Just for ping
+    - name: Test ping connectivity
       ansible.builtin.ping:
 
+    - name: Fail if ping
+      ansible.builtin.ping:
+        data: CRASH
+      when: false # Condition, not auto start of task
 ```
+
 Проверим синтаксис плейбука: 
 ```bash
 ┌─ root ~/.ansible/project1/playbooks 
