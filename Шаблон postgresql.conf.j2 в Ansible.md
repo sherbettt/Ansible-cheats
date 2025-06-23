@@ -17,8 +17,9 @@
 
       # Вычисляем 25% в MB
       shared_buffers_mb=$(($total_ram_kb * 25 / 100 / 1024))
-
-      echo "shared_buffers = ${shared_buffers_mb}MB"
+      
+      echo "total RAM = ${total_ram_mb} MB"
+      echo "shared_buffers = ${shared_buffers_mb} MB"
       ```
    
 
