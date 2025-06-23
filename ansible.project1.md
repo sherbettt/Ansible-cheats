@@ -296,9 +296,12 @@ playbook: ping.yml
 
 Чтобы узнать все факты об ОС на клиенсткой машине, можно воспользоваться Ad-Hoc командой и при помощи grep фильтровать данные:
 ```bash
-ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.setup
+ansible clients -i ~/.ansible/project1/inventory/hosts.ini -m ansible.builtin.gather_facts --tree /tmp/facts;
+ansible clients -i ~/.ansible/project1/inventory/hosts.ini -m ansible.builtin.gather_facts --tree /tmp/facts | grep 'pkg_mgr';
 
-└─ # ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.setup | grep mem
+ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.setup;
+
+ # ansible -i ~/.ansible/project1/inventory/hosts.ini test-lan -m ansible.builtin.setup | grep mem
         "ansible_memfree_mb": 371,
         "ansible_memory_mb": {
         "ansible_memtotal_mb": 2048,
