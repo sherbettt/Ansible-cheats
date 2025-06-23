@@ -277,3 +277,40 @@ ok: [localhost] => (item=c) => {"msg": "c"}
 **Рекомендация:**  
 Лучше использовать `q()` или `query()`, так как это более новый и лаконичный синтаксис. `lookup` с `wantlist` — устаревший подход.
 
+------
+Пример:
+```yaml
+---
+- name: Test (when,loop)
+  hosts: clients
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Generate pass on test-gw
+      debug:
+        var: lookup('ansible.builtin.password', '/tmp/mysql_pass.txt length=12 chars=ascii_letters,digits')
+
+    - name: And copy generated pass to test-lan*
+      template:
+        dest: /tmp/mysql_pass.txt
+        src: /tmp/mysql_pass.txt
+        owner: root
+        mode: '0644'
+
+    - name: display memsize script
+      ansible.builtin.debug:
+        msg: "Watch the script: {{ lookup('ansible.builtin.file', '/root/memsize') }}"
+
+    - name: restart systemd service if it exists on RedHat
+      service:
+        state: restarted
+        name: sshd.service
+      when: (ansible_facts['os_family'] == "RedHat") and (ansible_facts['os_version'] is version('8', '>='))
+#      when: ansible_facts['services']['sshd.service']['status'] | default('not-found') != 'not-found'
+#      when: ansible.builtin.stat(path="/etc/ssh/ssh_config").stat.exists
+
+```
+
+
+
