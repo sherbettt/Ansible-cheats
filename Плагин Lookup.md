@@ -1,6 +1,178 @@
  [Lookups](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_lookups.html)
 
-Этот код написан на языке Ansible, который используется для автоматизации настройки и управления серверами. Давайте разберём его по частям:
+Плагин `lookup` в Ansible позволяет получать данные из внешних источников (файлы, базы данных, команды системы и др.). 
+Он работает в Jinja2-шаблонах и может использоваться в модулях, директивах и переменных.
+
+---
+
+## **1. Основные типы `lookup` и примеры**
+### **1.1. Чтение файла (`file`)**
+Получает содержимое файла.
+
+**Пример 1: Передача содержимого файла в переменную**
+```yaml
+vars:
+  file_content: "{{ lookup('file', '/etc/motd') }}"
+
+tasks:
+  - debug:
+      var: file_content
+```
+
+**Пример 2: Использование в модуле `copy`**
+```yaml
+tasks:
+  - copy:
+      content: "{{ lookup('file', '/tmp/source.txt') }}"
+      dest: /tmp/destination.txt
+```
+
+---
+
+### **1.2. Запуск команды (`pipe`)**
+Выполняет команду в shell и возвращает её вывод.
+
+**Пример: Получение версии ядра Linux**
+```yaml
+vars:
+  kernel_version: "{{ lookup('pipe', 'uname -r') }}"
+
+tasks:
+  - debug:
+      var: kernel_version
+```
+
+---
+
+### **1.3. Чтение переменных окружения (`env`)**
+Получает значение переменной окружения.
+
+**Пример: Получение `$HOME`**
+```yaml
+vars:
+  user_home: "{{ lookup('env', 'HOME') }}"
+
+tasks:
+  - debug:
+      var: user_home
+```
+
+---
+
+### **1.4. Генерация пароля (`password`)**
+Создаёт случайный пароль и сохраняет его в файл (если файл существует, возвращает сохранённый пароль).
+
+**Пример: Генерация пароля для БД**
+```yaml
+tasks:
+  - debug:
+      var: lookup('password', '/tmp/mysql_pass.txt length=12 chars=ascii_letters,digits')
+```
+
+---
+
+### **1.5. Получение данных из CSV-файла (`csvfile`)**
+Читает данные из CSV-файла.
+
+**Пример: Получение IP-адреса сервера из `hosts.csv`**
+```csv
+# hosts.csv
+name,ip,port
+web1,192.168.1.10,80
+db1,192.168.1.20,5432
+```
+```yaml
+vars:
+  db_ip: "{{ lookup('csvfile', 'db1 file=hosts.csv delimiter=, col=1') }}"
+
+tasks:
+  - debug:
+      var: db_ip  # Выведет 192.168.1.20
+```
+
+---
+
+### **1.6. Получение данных из Redis (`redis_kv`)**
+Читает значение из Redis по ключу.
+
+**Пример: Получение значения по ключу `app:config`**
+```yaml
+vars:
+  redis_value: "{{ lookup('redis_kv', 'redis://localhost:6379,app:config') }}"
+
+tasks:
+  - debug:
+      var: redis_value
+```
+
+---
+
+### **1.7. Получение данных из Consul (`consul_kv`)**
+Читает значение из Consul KV-хранилища.
+
+**Пример: Получение конфигурации из Consul**
+```yaml
+vars:
+  consul_data: "{{ lookup('consul_kv', 'config/app/settings', host='consul.example.com') }}"
+
+tasks:
+  - debug:
+      var: consul_data
+```
+
+---
+
+## **2. Использование `lookup` в разных директивах**
+### **2.1. В `vars` (переменные)**
+```yaml
+vars:
+  secret_key: "{{ lookup('password', '/tmp/secret.txt') }}"
+```
+
+### **2.2. В `tasks` (задачи)**
+```yaml
+tasks:
+  - copy:
+      content: "{{ lookup('file', '/tmp/template.conf') }}"
+      dest: /etc/app/config.conf
+```
+
+### **2.3. В `templates` (Jinja2-шаблоны)**
+```jinja
+# config.j2
+DB_PASSWORD = {{ lookup('password', '/tmp/db_pass.txt') }}
+```
+
+### **2.4. В `when` (условия)**
+```yaml
+tasks:
+  - command: restart_service
+    when: lookup('file', '/tmp/flag') == "1"
+```
+
+---
+
+## **3. Комбинирование `lookup` с другими модулями**
+### **3.1. С `lineinfile` (добавление строки в файл)**
+```yaml
+tasks:
+  - lineinfile:
+      path: /etc/ssh/sshd_config
+      line: "PermitRootLogin {{ lookup('env', 'ALLOW_ROOT_LOGIN') | default('no') }}"
+```
+
+### **3.2. С `uri` (HTTP-запрос)**
+```yaml
+tasks:
+  - uri:
+      url: "https://api.example.com/data"
+      headers:
+        Authorization: "Bearer {{ lookup('file', '/tmp/api_token') }}"
+```
+
+------------
+
+Штатный пример.
 
 ### 1. Секция `vars`:
 ```yaml
