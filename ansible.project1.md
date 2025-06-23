@@ -564,7 +564,7 @@ postgresql_effective_cache_size: "{{ (ansible_memtotal_mb * 0.6) | int }}MB"
 Можно сделать тестовый запуск:
 Проверим синтаксис плейбука: 
 ```bash
-ansible-playbook -i /root/.ansible/project1/inventory/hosts.ini --syntax-check ping.yml
+ansible-playbook -i /root/.ansible/project1/inventory/hosts.ini --syntax-check 05_psql-conf.yml
 ansible-playbook -C -i /root/.ansible/project1/inventory/hosts.ini 05_psql-conf.yml
 ```
 
