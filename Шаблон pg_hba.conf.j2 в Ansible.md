@@ -1,4 +1,4 @@
-### Пример pg_hba.conf.j2
+### Пример `pg_hba.conf.j2`
 
 ```jinja2
 ## ~/.ansible/project1/templates/pg_hba.conf.j2
