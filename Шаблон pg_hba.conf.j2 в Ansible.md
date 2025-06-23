@@ -2,7 +2,7 @@
 
 ### Пример `pg_hba.conf.j2`
 
-```jinja2
+```jinja
 ## ~/.ansible/project1/templates/pg_hba.conf.j2
 #####
 # TYPE  DATABASE  USER      ADDRESS           METHOD
@@ -18,7 +18,7 @@ host    all       all       {{ip}}            md5
 ```
 или
 
-```jinja2
+```jinja
 ## ~/.ansible/project1/templates/pg_hba.conf.j2
 #####
 # TYPE  DATABASE  USER      ADDRESS           METHOD
