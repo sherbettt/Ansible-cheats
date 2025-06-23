@@ -483,33 +483,82 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
 <br/> См. [postgresql_pg_hba_module](https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_pg_hba_module.html)
 
 ```yaml
-# root/.ansible/project1/playbooks/postgresql-setup.yml
+## ~/.ansible/project1/playbooks/05_psql-conf.yml
 ######
 ---
 - name: Configure PostgreSQL using template
   hosts: clients
   become: true
+  
+  # vars:
+  #   - pg_config_cmd: "pg_config --version"
+  #   - pg_etc_path: "/etc/postgresql"
+  vars_files:
+    - /root/.ansible/project1/group_vars/clients/psql_var.yml
 
   tasks:
+
+    - name: Verify required variables are set
+      ansible.builtin.assert:
+        that:
+          - pg_config_cmd is defined
+          - pg_etc_path is defined
+          - postgresql_ram_shared is defined
+          - postgresql_ram_cache is defined
+
+    - name: Check Postgresql version after update
+      ansible.builtin.command: "{{ pg_config_cmd }}"
+      register: pg_version
+      changed_when: false
+
+    - name: Display Postgresql version
+      ansible.builtin.debug:
+        var: pg_version.stdout
+
+    - name: Get PostgreSQL version (short form)
+      ansible.builtin.set_fact:
+        postgresql_version: "{{ pg_version.stdout.split('.')[0] | regex_replace('[^0-9]', '') }}"
+
+    - name: Calculate PostgreSQL memory settings
+      ansible.builtin.set_fact:
+        postgresql_ram_shared: "{{ (ansible_memtotal_mb * 0.25) | int }}MB"
+
     - name: Copy postgresql.conf with templating
       ansible.builtin.template:
-        src: /root/.ansible/project1/templates/postgresql.j2
-        dest: /etc/postgresql/<version>/main/postgresql.conf
+        src: /root/.ansible/project1/templates/postgresql.conf.j2
+        dest: "{{ pg_etc_path }}/{{ postgresql_version }}/main/postgresql.conf"
         owner: postgres
         group: postgres
         mode: '0644'
-    notify: restart postgresql
+      notify: restart postgresql
 
     - name: Ensure PSQL is running
       ansible.builtin.service:
-        name: postgresql  #postgres
+        name: postgresql
         state: started
         enabled: true
 
-# Условие для директивы notify
   handlers:
     - name: restart postgresql
       ansible.builtin.service:
         name: postgresql
         state: restarted
 ```
+
+```
+# /root/.ansible/project1/group_vars/clients/psql_var.yml
+pg_config_cmd: "pg_config --version"
+pg_etc_path: "/etc/postgresql"
+
+# Memory settings (25% of total RAM for shared_buffers, 15% for cache)
+postgresql_ram_shared: "{{ (ansible_memtotal_mb * 0.25) | int }}MB"
+postgresql_ram_cache: "{{ (ansible_memtotal_mb * 0.15) | int }}MB"
+
+postgresql_work_mem: "64MB"
+postgresql_maintenance_work_mem: "256MB"
+postgresql_effective_cache_size: "{{ (ansible_memtotal_mb * 0.6) | int }}MB"
+
+```
+
+
+
