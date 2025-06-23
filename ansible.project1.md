@@ -65,7 +65,7 @@ cd ~/.ansible/project
 ```ini
 [masters]
 # check group_vars/masters/ssh.yml
-test-gw ansible_host=192.168.87.112 ansible_user=ansible
+test-gw ansible_host=192.168.87.112 ansible_user=root  # лучше использовать ansible, создав на клиентских машинах
 #test-gw ansible_host=192.168.87.112 ansible_user=root ansible_ssh_common_args=''
 kiko0217 ansible_host=192.168.87.136 ansible_user=root
 
