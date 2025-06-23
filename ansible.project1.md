@@ -11,11 +11,9 @@
   - установить python (разные версии для теста);
   - установить postgreql;
   - создать template postgresql.j2
-
-См.: [Описание и пример ansible.cfg](https://github.com/sherbettt/Ansible-cheats/blob/main/03.%20Описание%20и%20пример%20ansible.cfg.md), 
-[Условие when](https://github.com/sherbettt/Ansible-cheats/blob/main/50.%20Условие%20when.md)
-
+  - 
 -----------------------------------------------------------------------
+
 ## Ansible на роутере.
 
 ### 1. Перед созданием структуры требуется проверить соединение по SSH.
@@ -143,7 +141,10 @@ ip route add 192.168.56.0/24 dev eth1
 ```
 Тогда `BindAddress` может не понадобиться.
 
----
+----
+
+См.: [Описание и пример ansible.cfg](https://github.com/sherbettt/Ansible-cheats/blob/main/03.%20Описание%20и%20пример%20ansible.cfg.md), 
+[Условие when](https://github.com/sherbettt/Ansible-cheats/blob/main/50.%20Условие%20when.md)
 
 **Файл **`ansible.cfg`**:**
 ```ini
