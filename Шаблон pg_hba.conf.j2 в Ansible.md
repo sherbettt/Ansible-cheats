@@ -38,7 +38,7 @@ ips: ['192.168.56.2/32' , '192.168.56.3/32']
 ```
 
 ### Частный пример использования jinja2:
-```jinja2
+```jinja
 # ~/.ansible/project1/templates/test.j2 
 My name is {{ ansible_facts['hostname'] }}
 Distribution is {{ ansible_facts['distribution'] }}
