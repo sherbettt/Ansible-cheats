@@ -578,7 +578,7 @@ ansible-playbook -C -i /root/.ansible/project1/inventory/hosts.ini 05_psql-conf.
 
 ### 4. Создание дополнительных playbook'ов
 ```yaml
-# pcat 00_test_loop.yml 
+# ~/.ansible/project1/playbooks/00_test_loop.yml 
 ---
 - name: Test loop
   hosts: clients
@@ -608,7 +608,7 @@ ansible-playbook -C -i /root/.ansible/project1/inventory/hosts.ini 05_psql-conf.
 ```
 
 ```yaml
-# pcat 00_test.yml      
+# ~/.ansible/project1/playbooks/00_test.yml      
 ---
 - name: Test (when,loop)
   hosts: clients
