@@ -1,3 +1,5 @@
+См.: [Templating (Jinja2)](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html)
+
 ### Пример `pg_hba.conf.j2`
 
 ```jinja2
