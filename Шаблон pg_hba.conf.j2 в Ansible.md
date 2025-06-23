@@ -1,5 +1,7 @@
 
 ```jinja2
+## ~/.ansible/project1/templates/pg_hba.conf.j2
+#####
 # TYPE  DATABASE  USER      ADDRESS           METHOD
 local   all       all                         peer
 host    all       all       127.0.0.1/32      scram-sha-256
@@ -14,6 +16,8 @@ host    all       all       {{ip}}            md5
 или
 
 ```jinja2
+## ~/.ansible/project1/templates/pg_hba.conf.j2
+#####
 # TYPE  DATABASE  USER      ADDRESS           METHOD
 local   all       all                         peer
 host    all       all       127.0.0.1/32      scram-sha-256
@@ -29,3 +33,25 @@ host    all       all       {{ip}}            md5
 # ~/.ansible/project1/group_vars/clients/pg_vars.yml
 ips: ['192.168.56.2/32' , '192.168.56.3/32']
 ```
+
+### Частный пример использования jinja2:
+```jinja2
+# ~/.ansible/project1/templates/test.j2 
+My name is {{ ansible_facts['hostname'] }}
+Distribution is {{ ansible_facts['distribution'] }}
+Interface is {{ ansible_facts['eth0'] }}
+```
+
+```yaml
+# pcat ~/.ansible/project1/playbooks/00_test4j2.yml 
+---
+- name: Write hostname
+  hosts: clients
+  tasks:
+  - name: write hostname using jinja2
+    ansible.builtin.template:
+       src: /root/.ansible/project1/templates/test.j2
+       dest: /tmp/hostname
+```
+
+
