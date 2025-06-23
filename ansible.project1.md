@@ -64,6 +64,7 @@ cd ~/.ansible/project
  **Файл **`~/.ansible/project1/inventory/hosts.ini`**:**
  <br/> [Run tasks using libssh for ssh connection](https://docs.ansible.com/ansible/latest/collections/ansible/netcommon/libssh_connection.html#ansible-collections-ansible-netcommon-libssh-connection)
  <br/> [connect via SSH client binary](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/ssh_connection.html#ansible-collections-ansible-builtin-ssh-connection)
+ <br/> [Переменная ansible_ssh_common_args](https://github.com/sherbettt/Ansible-cheats/blob/main/Переменная%20ansible_ssh_common_args.md)
 ```ini
 [masters]
 # check group_vars/masters/ssh.yml
