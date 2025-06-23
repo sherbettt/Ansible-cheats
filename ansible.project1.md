@@ -526,6 +526,7 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
     - name: Copy postgresql.conf with templating
       ansible.builtin.template:
         src: /root/.ansible/project1/templates/postgresql.conf.j2
+          # dest: /etc/postgresql/15/main
         dest: "{{ pg_etc_path }}/{{ postgresql_version }}/main/postgresql.conf"
         owner: postgres
         group: postgres
