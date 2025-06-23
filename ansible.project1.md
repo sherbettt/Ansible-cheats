@@ -426,7 +426,7 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html#ansible-collections-ansible-builtin-apt-module
   tasks:
 
-    - name: Gather and display system information (OS, CPU, RAM, Processes)
+    - name: Gather and display system information (OS, CPU, RAM)
       ansible.builtin.debug:
         msg: |
           Ansible version: {{ansible_version}}
