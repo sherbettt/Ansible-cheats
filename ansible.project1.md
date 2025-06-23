@@ -473,7 +473,7 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
         var: pg_version.stdout
 ```
 
-Создаём template `templates/postgresql.j2`
+Создаём template `templates/postgresql.j2` -> см. [Шаблон postgresql.conf.j2 в Ansible](https://github.com/sherbettt/Ansible-cheats/blob/main/Шаблон%20postgresql.conf.j2%20в%20Ansible.md)
 
 
 
