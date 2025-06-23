@@ -295,7 +295,8 @@ ok: [localhost] => (item=c) => {"msg": "c"}
       template:
         dest: /tmp/mysql_pass.txt
         src: /tmp/mysql_pass.txt
-        owner: root
+        owner: ansible
+        group: ansible
         mode: '0644'
 
     - name: display memsize script
