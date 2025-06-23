@@ -575,3 +575,69 @@ ansible-playbook -i /root/.ansible/project1/inventory/hosts.ini --syntax-check 0
 ansible-playbook -C -i /root/.ansible/project1/inventory/hosts.ini 05_psql-conf.yml
 ```
 
+
+### 4. Создание дополнительных playbook'ов
+```yaml
+# pcat 00_test_loop.yml 
+---
+- name: Test loop
+  hosts: clients
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Check existing of groups
+      ansible.builtin.group:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - ansible
+        - sudo
+
+    - name: Create users
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        state: present
+        groups: "{{ item.groups }}"
+        append: true
+      loop: 
+        - { name: 'alice', groups: 'sudo' }
+        - { name: 'tom', groups: 'sudo' }
+        - { name: 'bob', groups: 'ansible' }
+
+```
+
+```yaml
+# pcat 00_test.yml      
+---
+- name: Test (when,loop)
+  hosts: clients
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Generate pass on test-gw
+      debug:
+        var: lookup('ansible.builtin.password', '/tmp/mysql_pass.txt length=12 chars=ascii_letters,digits')
+
+    - name: And copy generated pass to test-lan*
+      template:
+        dest: /tmp/mysql_pass.txt
+        src: /tmp/mysql_pass.txt
+        owner: ansible
+        group: ansible
+        mode: '0644'
+
+    - name: display memsize script
+      ansible.builtin.debug:
+        msg: "Watch the script: {{ lookup('ansible.builtin.file', '/root/memsize') }}"
+
+    - name: restart systemd service if it exists on RedHat
+      service:
+        state: restarted
+        name: sshd.service
+      when: (ansible_facts['os_family'] == "RedHat") and (ansible_facts['os_version'] is version('8', '>='))
+#      when: ansible_facts['services']['sshd.service']['status'] | default('not-found') != 'not-found'
+#      when: ansible.builtin.stat(path="/etc/ssh/ssh_config").stat.exists
+
+```
