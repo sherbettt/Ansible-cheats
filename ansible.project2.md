@@ -25,6 +25,7 @@ psql -U username -d dbname
 Находясь будучи в psql, используй команды:
 - `\l` or `\list` , `\l+`
 - `\db` , `\du`
+- `\?`, `\help`, [Шпаргалка по основным командам PostgreSQL](https://www.oslogic.ru/knowledge/598/shpargalka-po-osnovnym-komandam-postgresql/)
 
 ### 2. Убедимся, что PostgreSQL слушает подключения (если знаем пароль)
 ```bash
