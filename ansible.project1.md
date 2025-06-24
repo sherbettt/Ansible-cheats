@@ -569,8 +569,8 @@ postgresql_effective_cache_size: "{{ (ansible_memtotal_mb * 0.6) | int }}MB"
 
 ```yaml
 # ~/.ansible/project1/group_vars/clients/pg_vars.yml
-###
-ips: ['192.168.56.2/32' , '192.168.56.3/32']ips: ['192.168.56.2/32' , '192.168.56.3/32']
+### This vars for ~/.ansible/project1/templates/pg_hba.conf.j2
+ips: ['192.168.56.2/32' , '192.168.56.3/32']
 ```
 
 
