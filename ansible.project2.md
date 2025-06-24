@@ -63,6 +63,26 @@ template1=# \du
  postgres | Суперпользователь, Создаёт роли, Создаёт БД, Репликация, Пропускать RLS | {}
  rt_pbx   |                                                                         | {}
 ```
+-----------------------------------------------------------------------
 
 ## 2. Начнём писать проект Ansible.
+
+#### 1. Создаём структуру проекта на `192.168.87.136`/GitLab.
+<pre style="color: #00ff00; background-color: #000000;">
+┌─ kirill ~/GIT-projects/backup 
+└─ $ treel -Cs
+[kirill   kirill           118 Jun 24 11:44]  .
+├── [kirill   kirill           503 Jun 24 13:15]  ansible.cfg
+├── [kirill   kirill             0 Jun 24 11:44]  facts_cache
+├── [kirill   kirill             0 Jun 24 11:30]  group_vars
+├── [kirill   kirill            18 Jun 24 11:35]  inventory
+│   └── [kirill   kirill            21 Jun 24 13:13]  hosts.ini
+├── [kirill   kirill            50 Jun 24 12:02]  playbooks
+│   ├── [kirill   kirill          2016 Jun 24 16:07]  dump_play.yml
+│   └── [kirill   kirill          3389 Jun 24 12:02]  playbook.yml
+└── [kirill   kirill             0 Jun 24 11:30]  roles
+</pre>
+
+
+
 
