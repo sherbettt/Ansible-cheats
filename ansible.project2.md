@@ -10,6 +10,11 @@
 
 ### 1. Для начала зайдём в БД и выясним имя самой БД
 ```
+┌─ root /etc/postgresql/15/main 
+─ dev70 
+└─ # su - postgres 
+postgres@dev70:~$ whoami 
+postgres
 postgres@dev70:~$ psql 
 psql (15.13 (Debian 15.13-0+deb12u1))
 Введите "help", чтобы получить справку.
