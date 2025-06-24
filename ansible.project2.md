@@ -91,7 +91,6 @@ remote_user = postgres
 log_path = /var/log/ansible.log
 forks = 1
 gathering = smart
-#timeout = 10  # SSH timeout
 
 # Caching of facts
 fact_caching = jsonfile
@@ -103,11 +102,6 @@ become = True
 become_method = sudo
 become_user = root
 become_ask_pass = False
-
-#[ssh_connection]
-#host_key_checking = true
-## This condition will be applied for all machines
-#ssh_args = -o BindAddress=192.168.56.1
 ```
 
 #### `inventory/hosts.ini`
