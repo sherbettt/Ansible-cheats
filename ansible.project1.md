@@ -641,3 +641,37 @@ ansible-playbook -C -i /root/.ansible/project1/inventory/hosts.ini 05_psql-conf.
 #      when: ansible.builtin.stat(path="/etc/ssh/ssh_config").stat.exists
 
 ```
+
+Такм образом текущая структура проекта выглядит теперь т.о.:
+```
+~/.ansible/project1/
+.
+|-- ansible.cfg
+|-- facts_cache
+|   |-- test-lan
+|   `-- test-lan2
+|-- group_vars
+|   |-- all.yml
+|   |-- clients
+|   |   |-- pg_vars.yml
+|   |   |-- psql_var.yml
+|   |   `-- psql_var.yml.bak
+|   |-- main.yml
+|   `-- masters
+|       `-- ssh.yml
+|-- inventory
+|   `-- hosts.ini
+|-- playbooks
+|   |-- 00_test.yml
+|   |-- 00_test4j2.yml
+|   |-- 00_test_loop.yml
+|   |-- 01_apt-install2.yml
+|   |-- 03_ping.yml
+|   |-- 04_all_facts.yml
+|   `-- 05_psql-conf.yml
+|-- roles
+`-- templates
+    |-- pg_hba.conf.j2
+    |-- postgresql.conf.j2
+    `-- test.j2
+```
