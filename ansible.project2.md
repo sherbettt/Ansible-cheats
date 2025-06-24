@@ -68,7 +68,7 @@ template1=# \du
 ## 2. Начнём писать проект Ansible.
 
 ### 1. Создаём структуру проекта на `192.168.87.136`/GitLab.
-<pre style="color: #00ff00; background-color: #000000;">
+```ini
 ┌─ kirill ~/GIT-projects/backup 
 └─ $ treel -Cs
 [kirill   kirill           118 Jun 24 11:44]  .
@@ -81,10 +81,10 @@ template1=# \du
 │   ├── [kirill   kirill          2016 Jun 24 16:07]  dump_play.yml
 │   └── [kirill   kirill          3389 Jun 24 12:02]  playbook.yml
 └── [kirill   kirill             0 Jun 24 11:30]  roles
-</pre>
+```
 
 #### `ansible.cfg`
-```cfg
+```ini
 [defaults]
 inventory = ./inventory/hosts.ini
 remote_user = postgres
@@ -109,4 +109,83 @@ become_ask_pass = False
 ## This condition will be applied for all machines
 #ssh_args = -o BindAddress=192.168.56.1
 ```
+
+#### `inventory/hosts.ini`
+```ini
+[pg_db]
+192.168.87.70
+```
+
+#### `playbooks/dump_play.yml`
+```yaml
+---
+- name: To make a backup and dump from pg_db
+  hosts: pg_db
+  gather_facts: true
+
+  # vars_files:
+  #   - ../../group_vars/secret.yml
+
+  pre_tasks:
+    # Pre-tasks section, installation
+    - name: Install python-psycopg2
+      ansible.builtin.apt:
+        name: python-psycopg2
+        state: present
+      tags:
+        - install
+      when: ((ansible_distribution == "Debian" and ansible_distribution_major_version == "10") or ansible_distribution == "Astra Linux")
+
+    - name: Install python3-psycopg2
+      ansible.builtin.apt:
+        name: python3-psycopg2
+        state: present
+      tags:
+        - install
+      when: ansible_distribution == "Debian" and (ansible_distribution_major_version == "11" or ansible_distribution_major_version == "12")
+
+  tasks:
+    # Main tasks section
+    # getent passwd postgres
+    - name: Check if PostgreSQL user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: postgres
+      register: postgres_user_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Debug PostgreSQL user info
+      ansible.builtin.debug:
+        msg: "PostgreSQL user check result: {{ postgres_user_check }}"
+
+    - name: Verify PostgreSQL user exists
+      ansible.builtin.debug:
+        msg: "PostgreSQL user exists: {{ postgres_user_check is not failed and postgres_user_check.getent_passwd is defined }}"
+      when: postgres_user_check is not failed
+
+      # Create storage directory
+    - name: Create storage directory using current date
+      ansible.builtin.file:
+        path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+        state: directory
+        mode: '0755'
+
+      # Create DB dump
+    - name: Dump an existing database to a file (with compression)
+      become: yes
+      become_method: su
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: rntl
+        state: dump
+        target: /tmp/rntl-{{ ansible_date_time.date }}.sql.gz
+
+
+```
+
+
+
+
+
 
