@@ -572,6 +572,7 @@ postgresql_effective_cache_size: "{{ (ansible_memtotal_mb * 0.6) | int }}MB"
 ### This vars for ~/.ansible/project1/templates/pg_hba.conf.j2
 ips: ['192.168.56.2/32' , '192.168.56.3/32']
 ```
+См. [Шаблон pg_hba.conf.j2 в Ansible.md](https://github.com/sherbettt/Ansible-cheats/blob/main/Шаблон%20pg_hba.conf.j2%20в%20Ansible.md) 
 
 
 Можно сделать тестовый запуск:
