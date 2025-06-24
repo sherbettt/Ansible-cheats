@@ -21,32 +21,6 @@ postgres@dev70:~$ psql
 psql (15.13 (Debian 15.13-0+deb12u1))
 Введите "help", чтобы получить справку.
 
-postgres=# SELECT datname, datdba, encoding, datcollate, datctype FROM pg_database;
-      datname      | datdba | encoding | datcollate  |  datctype   
--------------------+--------+----------+-------------+-------------
- postgres          |     10 |        6 | ru_RU.UTF-8 | ru_RU.UTF-8
- rt_pbx_v2         |  16384 |        6 | ru_RU.UTF-8 | ru_RU.UTF-8
- template1         |     10 |        6 | ru_RU.UTF-8 | ru_RU.UTF-8
- template0         |     10 |        6 | ru_RU.UTF-8 | ru_RU.UTF-8
- rt_pbx_v2_media   |  16384 |        6 | ru_RU.UTF-8 | ru_RU.UTF-8
- rt_pbx_v2_stat    |  16384 |        6 | ru_RU.UTF-8 | ru_RU.UTF-8
- rt_pbx_v2_logging |  16384 |        6 | ru_RU.UTF-8 | ru_RU.UTF-8
-(7 строк)
-
-postgres=# \l
-                                                      Список баз данных
-        Имя        | Владелец | Кодировка | LC_COLLATE  |  LC_CTYPE   | локаль ICU | Провайдер локали |     Права доступа     
--------------------+----------+-----------+-------------+-------------+------------+------------------+-----------------------
- postgres          | postgres | UTF8      | ru_RU.UTF-8 | ru_RU.UTF-8 |            | libc             | 
- rt_pbx_v2         | rt_pbx   | UTF8      | ru_RU.UTF-8 | ru_RU.UTF-8 |            | libc             | 
- rt_pbx_v2_logging | rt_pbx   | UTF8      | ru_RU.UTF-8 | ru_RU.UTF-8 |            | libc             | 
- rt_pbx_v2_media   | rt_pbx   | UTF8      | ru_RU.UTF-8 | ru_RU.UTF-8 |            | libc             | 
- rt_pbx_v2_stat    | rt_pbx   | UTF8      | ru_RU.UTF-8 | ru_RU.UTF-8 |            | libc             | 
- template0         | postgres | UTF8      | ru_RU.UTF-8 | ru_RU.UTF-8 |            | libc             | =c/postgres          +
-                   |          |           |             |             |            |                  | postgres=CTc/postgres
- template1         | postgres | UTF8      | ru_RU.UTF-8 | ru_RU.UTF-8 |            | libc             | =c/postgres          +
-                   |          |           |             |             |            |                  | postgres=CTc/postgres
-(7 строк)
 ```
 
 ```c
