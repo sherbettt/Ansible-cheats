@@ -24,9 +24,14 @@ psql (15.13 (Debian 15.13-0+deb12u1))
 psql -U username -d dbname
 ```
 
-Находясь будучи в psql используй команды:
+Находясь будучи в psql, используй команды:
 - `\l` or `\list` , `\l+`
 - `\db` , `\du`
+
+### 2. Убедимся, что PostgreSQL слушает подключения (если знаем пароль)
+```bash
+psql -h 192.168.87.70 -U postgres -W
+```
 -----------------------------------------------------------------------
 
 ## 2. Начнём писать проект Ansible
@@ -47,7 +52,7 @@ psql -U username -d dbname
   └── [kirill   kirill             0 Jun 24 11:30]  ./roles
   ```
 
-#### `ansible.cfg`
+#### 2. `ansible.cfg`
 ```ini
 [defaults]
 inventory = ./inventory/hosts.ini
@@ -68,13 +73,20 @@ become_user = root
 become_ask_pass = False
 ```
 
-#### `inventory/hosts.ini`
+#### 3. `inventory/hosts.ini`
 ```ini
 [pg_db]
 192.168.87.70
 ```
 
-#### `playbooks/dump_play.yml`
+#### 4. Сделаем ручной опрос баз данных
+```bash
+sudo ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m postgresql_info -a 'filter=dat*,rol* login_user=postgres login_password=ваш_пароль login_host=192.168.87.70'
+```
+Но скорее всего возникнет ошибка
+
+
+#### 5. `playbooks/dump_play.yml`
 ```yaml
 ---
 - name: To make a backup and dump from pg_db
