@@ -649,7 +649,7 @@ ansible-playbook -C -i /root/.ansible/project1/inventory/hosts.ini 05_psql-conf.
 
 ```
 
-Такм образом текущая структура проекта выглядит теперь т.о.:
+Такм образом текущая структура проекта выглядит следующим образом:
 ```
 ~/.ansible/project1/
 .
