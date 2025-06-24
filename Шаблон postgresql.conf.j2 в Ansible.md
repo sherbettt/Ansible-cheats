@@ -15,7 +15,7 @@
       # Получаем общий объём RAM в KB
       total_ram_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
       total_ram_mb=$(($total_ram_kb / 1000))
-      # total_ram_mb=$(($total_ram_kb / 1000))
+      #total_ram_mib=$(($total_ram_mb * 0,9536743 ))
       
       # Вычисляем 25% в MB
       shared_buffers_mb=$(($total_ram_kb * 25 / 100 / 1024))
