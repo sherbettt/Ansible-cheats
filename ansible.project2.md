@@ -92,6 +92,8 @@ local   all             postgres                                peer
 на строку
 ```text
 local   all             postgres                                md5
+# Или для сети:
+host    all             postgres        192.168.87.0/24        md5
 ```
 
 
