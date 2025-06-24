@@ -12,8 +12,6 @@
 
 ### 1. Убедимся, что есть доступ через `psql`.
 ```c
-┌─ root /etc/postgresql/15/main 
-─ dev70 
 └─ # su - postgres 
 postgres@dev70:~$ whoami 
 postgres
