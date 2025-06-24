@@ -1,5 +1,7 @@
 Базовые страницы для поиска модулей в [ansible-doc](https://docs.ansible.com/ansible/latest/cli/ansible-doc.html):
-<br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/) -> [ansible.builtin modules](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/)
+<br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/):
+<br/> -> [ansible.builtin modules](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/)
+<br/> -> [Community.Postgresql](https://docs.ansible.com/ansible/latest/collections/community/postgresql/index.html)
 <br/> а также
 <br/> [Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task) ,
 <br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/) ,
