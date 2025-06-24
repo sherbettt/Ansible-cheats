@@ -128,7 +128,6 @@ host    all             postgres        192.168.87.0/24        md5
 
   tasks:
     # Main tasks section
-    # getent passwd postgres
     - name: Check if PostgreSQL user exists
       ansible.builtin.getent:
         database: passwd
@@ -146,22 +145,54 @@ host    all             postgres        192.168.87.0/24        md5
         msg: "PostgreSQL user exists: {{ postgres_user_check is not failed and postgres_user_check.getent_passwd is defined }}"
       when: postgres_user_check is not failed
 
-      # Create storage directory
+    # Create storage directory
     - name: Create storage directory using current date
       ansible.builtin.file:
         path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
         state: directory
         mode: '0755'
 
-      # Create DB dump
+    # Get database info
+    - name: Collect PostgreSQL databases
+      become: true
+      become_user: postgres
+      community.postgresql.postgresql_info:
+        filter: databases
+      register: db_info
+      changed_when: false
+
+    - name: Debug database info
+      ansible.builtin.debug:
+        var: db_info.databases
+
+    # Create DB dump
     - name: Dump an existing database to a file (with compression)
-      become: yes
+      become: true
       become_method: su
       become_user: postgres
       community.postgresql.postgresql_db:
-        name: rntl
+        name: "{{ item.name }}"
         state: dump
-        target: /tmp/rntl-{{ ansible_date_time.date }}.sql.gz
+        target: "/tmp/{{ item.name }}-{{ ansible_date_time.date }}.sql.gz"
+      loop: "{{ db_info.databases | dict2items }}"
+      when: 
+        - postgres_user_check is not failed
+        - postgres_user_check.getent_passwd is defined
+        - db_info.databases | length > 0
+      loop_control:
+        label: "{{ item.key }}"
+
+    # Check created dump files
+    - name: Find PostgreSQL dump files in /tmp/
+      ansible.builtin.find:
+        paths: /tmp/
+        patterns: "*.sql.gz"
+        use_regex: no
+      register: tmp_dumps
+
+    - name: Display found dump files
+      ansible.builtin.debug:
+        var: tmp_dumps.files
 
 
 ```
