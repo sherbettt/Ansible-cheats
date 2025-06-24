@@ -80,9 +80,20 @@ become_ask_pass = False
 
 #### 4. Сделаем ручной опрос баз данных
 ```bash
+sudo ansible -i ~/GIT-projects/backup/inventory/hosts.ini postgres -m postgresql_info;
+sudo ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m postgresql_info -a 'filter=dat*,rol*';
 sudo ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m postgresql_info -a 'filter=dat*,rol* login_user=postgres login_password=ваш_пароль login_host=192.168.87.70'
 ```
-Но скорее всего возникнет ошибка
+Но скорее всего возникнет ошибка аутентификации. 
+<br/> Можно попробовать отредактировать `/etc/postgresql/15/main/pg_hba.conf`, заменив строку:
+```text
+local   all             postgres                                peer
+```
+на строку
+```text
+local   all             postgres                                md5
+```
+
 
 
 #### 5. `playbooks/dump_play.yml`
