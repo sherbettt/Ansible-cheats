@@ -553,7 +553,7 @@ ansible -i /root/.ansible/project1/inventory/hosts.ini clients -m debug -a 'var=
         state: restarted
 ```
 
-```
+```yaml
 # /root/.ansible/project1/group_vars/clients/psql_var.yml
 pg_config_cmd: "pg_config --version"
 pg_etc_path: "/etc/postgresql"
@@ -565,8 +565,14 @@ postgresql_ram_cache: "{{ (ansible_memtotal_mb * 0.15) | int }}MB"
 postgresql_work_mem: "64MB"
 postgresql_maintenance_work_mem: "256MB"
 postgresql_effective_cache_size: "{{ (ansible_memtotal_mb * 0.6) | int }}MB"
-
 ```
+
+```yaml
+# ~/.ansible/project1/group_vars/clients/pg_vars.yml
+###
+ips: ['192.168.56.2/32' , '192.168.56.3/32']ips: ['192.168.56.2/32' , '192.168.56.3/32']
+```
+
 
 Можно сделать тестовый запуск:
 Проверим синтаксис плейбука: 
