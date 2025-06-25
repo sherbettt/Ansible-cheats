@@ -117,6 +117,9 @@ pre_tasks:
 ### Получение информации о базах данных
 
 ```yaml
+    # Get database info
+        # check https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_info_module.html
+        # field filter
 - name: Collect PostgreSQL databases
   become: true
   become_user: postgres
