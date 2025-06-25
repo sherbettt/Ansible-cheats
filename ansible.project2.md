@@ -107,11 +107,17 @@ host    all             postgres        192.168.87.0/24        md5
 ansible-galaxy collection install ansible.posix {--force}
 ansible-galaxy collection install ansible.utils
 ansible-galaxy collection install community.postgresql
+ansible-galaxy collection list | grep posix {postgresql|utils|<etc>}
 ```
 Проверим путь до переменной COLLECTIONS_PATHS:
 ```bash
 ansible-config dump | grep COLLECTIONS_PATHS
 ```
+Проверьте, что rsync установлен на управляющем узле:
+```bash
+which rsync || sudo apt install rsync
+```
+
 
 ```yaml
 ---
