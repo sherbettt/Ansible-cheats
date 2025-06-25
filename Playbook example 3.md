@@ -102,6 +102,17 @@ pre_tasks:
   - Имя хоста из инвентаря
   - Текущую дату (используется факт ansible_date_time)
 - Устанавливает права 0755 (rwxr-xr-x)
+    ```bash
+    ┌─ root /etc/postgresql/15/main 
+    ─ dev70 
+    └─ # ll /usr/local/runtel/storage_files/telecoms/runtel.org/192.168.87.70/
+    итого 16
+    drwxr-xr-x 4 root root 4096 июн 25 07:07 ./
+    drwxr-xr-x 3 root root 4096 июн 24 10:04 ../
+    drwxr-xr-x 2 root root 4096 июн 24 10:04 2025-06-24/
+    drwxr-xr-x 2 root root 4096 июн 25 07:07 2025-06-25/
+    ```
+
 
 ### Получение информации о базах данных
 
