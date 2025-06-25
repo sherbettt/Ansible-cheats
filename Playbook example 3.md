@@ -80,6 +80,13 @@ pre_tasks:
     msg: "PostgreSQL user exists: {{ postgres_user_check is not failed and postgres_user_check.getent_passwd is defined }}"
   when: postgres_user_check is not failed
 ```
+    ```bash
+    ┌─ root /etc/postgresql/15/main 
+    ─ dev70 
+    └─ # getent passwd postgres; getent group postgres
+    postgres:x:104:113:PostgreSQL administrator,,,:/var/lib/postgresql:/bin/bash
+    postgres:x:113:
+    ```
 
 - Проверяет и выводит существует ли пользователь postgres
 - Условие **when** выполняется только если предыдущая задача не завершилась ошибкой
