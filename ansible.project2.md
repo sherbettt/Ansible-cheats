@@ -76,6 +76,9 @@ become_ask_pass = False
 ```ini
 [pg_db]
 192.168.87.70
+
+[pg_db:vars]
+ansible_python_interpreter=/usr/bin/python3.11
 ```
 
 #### 4. Сделаем ручной опрос баз данных
