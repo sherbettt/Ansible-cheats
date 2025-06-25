@@ -3,6 +3,7 @@
 Вместе с модулями смотри [Common Return Values](https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html)
 
 Базовые страницы для поиска модулей в [ansible-doc](https://docs.ansible.com/ansible/latest/cli/ansible-doc.html):
+<br/> [Playbooks Delegation](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_delegation.html)
 <br/> [Indexes of all modules and plugins](https://docs.ansible.com/ansible/latest/collections/all_plugins.html)
 <br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/):
 - [ansible.builtin modules](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/)
