@@ -104,7 +104,7 @@ host    all             postgres        192.168.87.0/24        md5
 #### 5. `playbooks/dump_play.yml`
 Установим ansible.posix:
 ```bash
-ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install ansible.posix {--force}
 ```
 
 ```yaml
@@ -203,15 +203,22 @@ ansible-galaxy collection install ansible.posix
 
 
     # Fetch received dump files to 192.168.87.136
-    - name: Copy *.sql.gz from /tmp/
+         # ansible-galaxy collection install ansible.posix
+    - name: Sync from 87.70 to 87.136
+      ansible.posix.synchronize:
+        mode: pull     # src is 87.70
+        src: /etc/runtel/
+        dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{inventory_hostname}}/configs/{{ansible_date_time.date}}/
 
 
 
 
 ```
 
-
-
+Запускаем:
+```bash
+sudo ansible-playbook -C -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml
+```
 
 
 
