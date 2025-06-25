@@ -219,6 +219,63 @@ when:
 ```
 - `files` — это список словарей, где каждый словарь описывает один найденный файл (путь, размер, владельца и т. д.).
 
+В Ansible, когда вы используете модуль `find` и регистрируете результат в переменную (например, `tmp_dumps`), эта переменная содержит несколько полезных атрибутов. Давайте разберёмся, какие значения может принимать `loop: "{{ tmp_dumps.files }}"` и что ещё доступно в `tmp_dumps.*`.
+
+### Основные атрибуты `tmp_dumps` после использования модуля `find`:
+
+1. **`tmp_dumps.files`** - это список словарей, где каждый словарь представляет найденный файл и содержит информацию о нём. Каждый элемент списка имеет следующие ключи:
+   - `path` - полный путь к файлу (например, "/tmp/backup.sql.gz")
+   - `filename` - имя файла (например, "backup.sql.gz")
+   - `size` - размер файла в байтах
+   - `uid` - user ID владельца
+   - `gid` - group ID владельца
+   - `mode` - права доступа (например, "0644")
+   - `mtime` - время последнего изменения (timestamp)
+   - `ctime` - время создания (timestamp)
+   - `isuid`, `isgid`, `isreg`, `isdir`, `ischr`, `isblk`, `isfifo`, `islnk`, `issock` - булевы флаги, указывающие тип файла
+
+2. **`tmp_dumps.matched`** - количество найденных файлов (целое число)
+
+3. **`tmp_dumps.skipped_paths`** - словарь с путями, которые были пропущены (например, из-за отсутствия прав доступа)
+
+### Пример использования в loop:
+Когда вы используете `loop: "{{ tmp_dumps.files }}"`, Ansible будет итерироваться по списку найденных файлов. В каждом цикле `item` будет содержать словарь с информацией об одном файле.
+
+Например, ваш debug task:
+```yaml
+- name: Display found dump files (paths)
+  ansible.builtin.debug:
+    msg: "{{ item.path }}"
+  loop: "{{ tmp_dumps.files }}"
+```
+Будет выводить полный путь каждого найденного файла.
+
+### Другие примеры использования:
+```yaml
+- name: Display file info
+  ansible.builtin.debug:
+    msg: "File {{ item.filename }} ({{ item.path }}) has size {{ item.size }} bytes and mode {{ item.mode }}"
+  loop: "{{ tmp_dumps.files }}"
+```
+
+```yaml
+- name: Check if any files were found
+  ansible.builtin.debug:
+    msg: "No dump files found in /tmp/"
+  when: tmp_dumps.matched == 0
+```
+
+```yaml
+- name: Process only regular files
+  ansible.builtin.debug:
+    msg: "Processing regular file {{ item.path }}"
+  loop: "{{ tmp_dumps.files }}"
+  when: item.isreg
+```
+
+Таким образом, `tmp_dumps.files` - это список словарей с информацией о файлах, а `tmp_dumps.*` содержит дополнительные метаданные о результатах поиска.
+
+
 ---
 
 ```yaml
