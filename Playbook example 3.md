@@ -233,7 +233,7 @@ when:
 - `tmp_dumps.files` даёт доступ к списку файлов.
 
 
-Альтернативный вариант:
+Альтернативный вариант с применеием jinja2:
 ```yaml
 - name: Display summary info
   ansible.builtin.debug:
