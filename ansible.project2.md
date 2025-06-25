@@ -136,7 +136,7 @@ host    all             postgres        192.168.87.0/24        md5
       ignore_errors: yes
       changed_when: false
 
-    - name: Debug PostgreSQL user info
+    - name: Display/Debug PostgreSQL user info
       ansible.builtin.debug:
         msg: "PostgreSQL user check result: {{ postgres_user_check }}"
 
@@ -146,6 +146,9 @@ host    all             postgres        192.168.87.0/24        md5
       when: postgres_user_check is not failed
 
     # Create storage directory
+       # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=inventory_hostname'
+       # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=ansible_date_time.date'
+         # check https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html
     - name: Create storage directory using current date
       ansible.builtin.file:
         path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
@@ -153,7 +156,9 @@ host    all             postgres        192.168.87.0/24        md5
         mode: '0755'
 
     # Get database info
-    - name: Collect PostgreSQL databases
+        # check https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_info_module.html
+        # field filter
+    - name: Gather information about PostgreSQL databases only from servers
       become: true
       become_user: postgres
       community.postgresql.postgresql_info:
@@ -161,7 +166,7 @@ host    all             postgres        192.168.87.0/24        md5
       register: db_info
       changed_when: false
 
-    - name: Debug database info
+    - name: Display/Debug all database info
       ansible.builtin.debug:
         var: db_info.databases
 
