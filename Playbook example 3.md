@@ -232,6 +232,30 @@ when:
 - `.files` — это атрибут (поле) объекта tmp_dumps, содержащий список найденных файлов.
 - `tmp_dumps.files` даёт доступ к списку файлов.
 
+
+Альтернативный вариант:
+```yaml
+- name: Display summary info
+  ansible.builtin.debug:
+    msg: |
+      Found {{ tmp_dumps.matched }} files:
+      {% for file in tmp_dumps.files %}
+      - {{ file.path }} (size: {{ file.size }} bytes)
+      {% endfor %}
+```
+
+оно же, но двумя директивами
+```yaml
+- name: Display found dump files (paths)
+  ansible.builtin.debug:
+    msg: "{{ item.path }}"
+  loop: "{{ tmp_dumps.files }}"
+
+- name: Display number of found files
+  ansible.builtin.debug:
+    var: tmp_dumps.matched
+```
+
 ---
 
 Общая логика плейбука:
