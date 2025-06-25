@@ -2,6 +2,7 @@
 <br/> [Collection Index](https://docs.ansible.com/ansible/latest/collections/):
 <br/> -> [ansible.builtin modules](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/)
 <br/> -> [Community.Postgresql](https://docs.ansible.com/ansible/latest/collections/community/postgresql/index.html)
+<br/> -> []()
 <br/> а также
 <br/> [Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task) ,
 <br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/) ,
