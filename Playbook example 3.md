@@ -87,6 +87,9 @@ pre_tasks:
 ### Создание директории для хранения
 
 ```yaml
+    # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=inventory_hostname'
+    # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=ansible_date_time.date'
+    # check https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html
 - name: Create storage directory using current date
   ansible.builtin.file:
     path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
