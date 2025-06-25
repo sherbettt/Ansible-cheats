@@ -226,7 +226,7 @@ which rsync || sudo apt install rsync
         mode: pull     # src is 87.70
         src: /etc/runtel/
         dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{inventory_hostname}}/configs/{{ansible_date_time.date}}/
-
+      delegate_to: 192.168.87.136
 
 
 
