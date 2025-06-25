@@ -128,22 +128,6 @@ host    all             postgres        192.168.87.0/24        md5
 
   tasks:
     # Main tasks section
-    - name: Check if PostgreSQL user exists
-      ansible.builtin.getent:
-        database: passwd
-        key: postgres
-      register: postgres_user_check
-      ignore_errors: yes
-      changed_when: false
-
-    - name: Display/Debug PostgreSQL user info
-      ansible.builtin.debug:
-        msg: "PostgreSQL user check result: {{ postgres_user_check }}"
-
-    - name: Verify PostgreSQL user exists
-      ansible.builtin.debug:
-        msg: "PostgreSQL user exists: {{ postgres_user_check is not failed and postgres_user_check.getent_passwd is defined }}"
-      when: postgres_user_check is not failed
 
     # Create storage directory
        # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=inventory_hostname'
@@ -198,6 +182,7 @@ host    all             postgres        192.168.87.0/24        md5
     - name: Display found dump files
       ansible.builtin.debug:
         var: tmp_dumps.files
+
 
 
 ```
