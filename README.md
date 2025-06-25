@@ -5,8 +5,11 @@
 <br/> -> [Ansible.Posix modules](https://docs.ansible.com/ansible/latest/collections/ansible/posix/index.html)
 <br/> -> [Community.Postgresql modules](https://docs.ansible.com/ansible/latest/collections/community/postgresql/index.html)
 
-<br/> а также
-<br/> [Playbook Keywords](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task) ,
+Вместе с модулями смотри также:
+<br/> [Common Return Values](https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html)
+
+<br/> [Playbook Keywords: Play](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#play) ,
+<br/> [Playbook Keywords: Task](https://docs.ansible.com/ansible/latest/reference_appendices/playbooks_keywords.html#task) ,
 <br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/) ,
 <br/> [Indexes of all modules and plugins](https://docs.ansible.com/ansible/latest/collections/all_plugins.html)
 <br/> [Discovering variables: facts and magic variables](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html)
@@ -14,7 +17,6 @@
 <br/> [Templating (Jinja2)](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_templating.html) -> [Jinja2 Docs](https://jinja.palletsprojects.com/en/latest/templates/)
  
  [YAMLSyntax](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html)
-<br/> [Return Values](https://docs.ansible.com/ansible/latest/reference_appendices/common_return_values.html)
 <br/> [Using Ansible playbooks](https://docs.ansible.com/ansible/latest/playbook_guide/index.html)
 <br/> [Building Ansible inventories](https://docs.ansible.com/ansible/latest/inventory_guide/index.html)
 <br/> [Ansible CLI cheatsheet](https://docs.ansible.com/ansible/latest/command_guide/cheatsheet.html)
