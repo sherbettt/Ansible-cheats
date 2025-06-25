@@ -79,6 +79,7 @@ become_ask_pass = False
 
 [pg_db:vars]
 ansible_python_interpreter=/usr/bin/python3.11
+# reason is https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html
 ```
 
 #### 4. Сделаем ручной опрос баз данных
