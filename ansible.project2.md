@@ -109,7 +109,7 @@ host    all             postgres        192.168.87.0/24        md5
   #   - ../../group_vars/secret.yml
 
   pre_tasks:
-    # Pre-tasks section, installation
+    # py installation
     - name: Install python-psycopg2
       ansible.builtin.apt:
         name: python-psycopg2
@@ -126,9 +126,9 @@ host    all             postgres        192.168.87.0/24        md5
         - install
       when: ansible_distribution == "Debian" and (ansible_distribution_major_version == "11" or ansible_distribution_major_version == "12")
 
-  tasks:
-    # Main tasks section
 
+    
+  tasks:
     # Create storage directory
        # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=inventory_hostname'
        # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=ansible_date_time.date'
@@ -150,26 +150,29 @@ host    all             postgres        192.168.87.0/24        md5
       register: db_info
       changed_when: false
 
-    - name: Display/Debug all database info
+    - name: Display/Debug info (db_info.databases.postgres.extensions.plpgsql)
+      ansible.builtin.debug:
+        var: db_info.databases.postgres.extensions.plpgsql
+
+    - name: Display/Debug all database info (db_info.databases)
       ansible.builtin.debug:
         var: db_info.databases
 
     # Create DB dump
+        # Check https://docs.ansible.com/ansible/latest/collections/ansible/builtin/find_module.html#return-values
     - name: Dump an existing database to a file (with compression)
       become: true
       become_method: su
       become_user: postgres
       community.postgresql.postgresql_db:
-        name: "{{ item.name }}"
+        name: "{{ item }}"  # Просто используем сам элемент, который является именем БД
         state: dump
-        target: "/tmp/{{ item.name }}-{{ ansible_date_time.date }}.sql.gz"
-      loop: "{{ db_info.databases | dict2items }}"
+        target: "/tmp/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+      loop: "{{ db_info.databases.keys() }}"  # Проходим по ключам словаря
       when: 
-        - postgres_user_check is not failed
-        - postgres_user_check.getent_passwd is defined
         - db_info.databases | length > 0
       loop_control:
-        label: "{{ item.key }}"
+        label: "{{ item }}"
 
     # Check created dump files
     - name: Find PostgreSQL dump files in /tmp/
@@ -179,9 +182,21 @@ host    all             postgres        192.168.87.0/24        md5
         use_regex: no
       register: tmp_dumps
 
-    - name: Display found dump files
+    - name: Display found dump files (paths)
       ansible.builtin.debug:
-        var: tmp_dumps.files
+        msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
+      loop: "{{ tmp_dumps.files }}"
+      when: tmp_dumps.matched > 0    # Выполнять только если файлы найдены
+
+    - name: Display number of found dump files
+      ansible.builtin.debug:
+        msg: "кол-во выводимых в /tmp/ *.sql.gz: {{ tmp_dumps.matched }}"
+#        var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
+
+
+    # Fetch received dump files to 192.168.87.136
+    - name: Copy *.sql.gz from /tmp/
+
 
 
 
