@@ -219,10 +219,13 @@ which rsync || sudo apt install rsync
     # Fetch received dump files to 192.168.87.136
          # ansible-galaxy collection install ansible.posix
     - name: Sync from 87.70 to 87.136
-      ansible_collections.ansible.posix.synchronize:
+#      ansible_collections.ansible.posix.synchronize:
+#      community.general.synchronize:
+      ansible.posix.synchronize:
         mode: pull     # src is 87.70
         src: /etc/runtel/
         dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{inventory_hostname}}/configs/{{ansible_date_time.date}}/
+
 
 
 
