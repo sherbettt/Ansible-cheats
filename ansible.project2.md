@@ -105,6 +105,8 @@ host    all             postgres        192.168.87.0/24        md5
 Установим ansible.posix:
 ```bash
 ansible-galaxy collection install ansible.posix {--force}
+ansible-galaxy collection install ansible.utils
+ansible-galaxy collection install community.postgresql
 ```
 
 ```yaml
