@@ -104,11 +104,12 @@ host    all             postgres        192.168.87.0/24        md5
 #### 5. `playbooks/dump_play.yml`
 Установим `ansible.*` модули:
 ```bash
-ansible-galaxy collection install ansible.posix {--force}
-ansible-galaxy collection install community.general
-ansible-galaxy collection install ansible.utils
-ansible-galaxy collection install community.postgresql
-ansible-galaxy collection list | grep posix {postgresql|utils|<etc>}
+ansible-galaxy collection install ansible.posix {--force};
+ansible-galaxy collection install community.general;
+ansible-galaxy collection install ansible.utils;
+ansible-galaxy collection install community.postgresql;
+
+ansible-galaxy collection list | grep posix {postgresql|utils|<etc>};
 ```
 Проверим путь до переменной COLLECTIONS_PATHS:
 ```bash
