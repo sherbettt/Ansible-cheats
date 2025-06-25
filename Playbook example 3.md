@@ -183,6 +183,8 @@ when:
 
 ---
 
+см. [Return Values](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/find_module.html#return-values) модуля ansible.builtin.find
+
 ```yaml
   - name: Find PostgreSQL dump files in /tmp/
     ansible.builtin.find:
