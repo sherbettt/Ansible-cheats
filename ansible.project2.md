@@ -140,9 +140,13 @@ which rsync || apt install rsync -y
 # Создаем тестовый файл
 echo "test" > /tmp/test_rsync.txt
 
-# Пробуем отправить его на backup-сервер
-rsync -avz --progress -e "ssh -i ~/.ssh/ansible_key" /tmp/test_rsync.txt root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/$(hostname)/$(date +%Y-%m-%d)/
+# На 192.168.87.99 выполнить:
+mkdir -p "/usr/local/runtel/storage_files/telecoms/runtel.org/dev70/$(date +%Y-%m-%d)"
+ls -alF "/usr/local/runtel/storage_files/telecoms/runtel.org/dev70/"
 
+# Пробуем отправить его на backup-сервер
+rsync -avz --progress /tmp/test_rsync.txt root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/dev70/$(date +%Y-%m-%d)/
+rsync -avz --progress -e "ssh -i ~/.ssh/ansible_key" /tmp/test_rsync.txt root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/$(hostname)/$(date +%Y-%m-%d)/
 rsync -avz --progress /tmp/ваша_база-$(date +%Y-%m-%d).sql.gz root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/$(hostname)/$(date +%Y-%m-%d)/
 ```
 
