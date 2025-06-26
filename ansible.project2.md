@@ -253,44 +253,43 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
 #        var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
 
 
-    - name: Check if destination directory exists on backup server (192.168.87.99)
+    - name: Ensure destination directory exists on backup server
       delegate_to: 192.168.87.99
-      ansible.builtin.command: ls -ld "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
-      register: dir_check
-      ignore_errors: yes
+      ansible.builtin.file:
+        path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+        state: directory
+        mode: '0755'
 
-    - name: Display directory check result
-      debug:
-        var: dir_check
-
+    - name: Check SSH connection to backup server
+      ansible.builtin.ping:
+      delegate_to: "{{ groups['targets'][0] }}"
+      register: ssh_check
+      
+    - name: Fail if SSH check failed
+      fail:
+        msg: "Cannot connect to backup server via SSH"
+      when: ssh_check is failed
 
     - name: Sync dumps to backup server
-      delegate_to: 192.168.87.99
       ansible.posix.synchronize:
-        rsync_path: "/usr/bin/rsync"
         mode: push
         src: "{{ item.path }}"
-        rsync_opts:               # man rsync
+#        dest: "{{ groups['targets'][0] }}:/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+        dest: "{{ inventory_hostname }}:/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+        rsync_opts:
           - "--inplace"
           - "--perms"
           - "--verbose"
           - "--progress"
-        dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/
+          - "--timeout=30"
+          - "--no-delay-updates"
+        private_key: "~/.ssh/id_rsa"  # Укажите путь к ключу при необходимости
       loop: "{{ tmp_dumps.files }}"
-      when: tmp_dumps.matched > 0
-
-
-
-    # Fetch received dump files to 192.168.87.99
-#- hosts: targets
-#  tasks:
-#    - name: Sync from 192.168.87.70 to 192.168.87.99
-#      ansible.posix.synchronize:
-#        mode: pull     # from 87.70
-#        src: "{{item.path}}"
-#        rsync_path: "rsync"  # Remove sudo from rsync path
-#        dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/
-#      loop: "{{ hostvars['192.168.87.70']['tmp_dumps'].files }}"    # чтобы перем. tmp_dumps из 1 плб использовалась во втором
+      register: sync_results
+      ignore_errors: yes
+      changed_when: sync_results.rc == 0 or sync_results.rc == 23
+      failed_when: sync_results.rc not in [0, 23, 24]
+      when: tmp_dumps.matched > 0 and ssh_check is success
 
 
 
