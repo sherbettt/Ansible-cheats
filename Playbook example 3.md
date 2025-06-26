@@ -168,11 +168,11 @@
 
 
 
-# Разбор Ansible Playbook для резервного копирования PostgreSQL
+## Разбор Ansible Playbook для резервного копирования PostgreSQL
 
 Этот playbook выполняет резервное копирование баз данных PostgreSQL на удаленный сервер. Давайте разберем его построчно:
 
-## Основные директивы playbook
+### Основные директивы playbook
 
 ```yaml
 - name: To make a backup and dump from pg_db
@@ -183,7 +183,7 @@
 - **hosts: pg_db** - Определяет группу хостов, на которых будет выполняться playbook
 - **gather_facts: true** - Включает сбор фактов о системе перед выполнением задач
 
-## Pre-tasks (Предварительные задачи)
+### Pre-tasks (Предварительные задачи)
 
 ```yaml
 pre_tasks:
@@ -210,9 +210,9 @@ pre_tasks:
 ```
 - Аналогично, но для Debian 11/12 устанавливает python3-версию
 
-## Основные задачи (Tasks)
+### Основные задачи (Tasks)
 
-### Создание директории для хранения
+#### Создание директории для хранения
 
 ```yaml
 - name: Create storage directory using current date
@@ -224,7 +224,7 @@ pre_tasks:
 - Создает директорию с именем текущей даты для хранения резервных копий
 - **mode** - Устанавливает права доступа 0755
 
-### Получение информации о базах данных
+#### Получение информации о базах данных
 
 ```yaml
 - name: Gather information about PostgreSQL databases only from servers
@@ -240,7 +240,7 @@ pre_tasks:
 - **register** - Сохраняет результат в переменную db_info
 - **changed_when: false** - Всегда отмечает задачу как неизмененную
 
-### Отладка информации
+#### Отладка информации
 
 ```yaml
 - name: Display/Debug info (db_info.databases.postgres.extensions.plpgsql)
@@ -256,7 +256,7 @@ pre_tasks:
 ```
 - Выводит полную информацию о всех базах данных
 
-### Создание дампов баз данных
+#### Создание дампов баз данных
 
 ```yaml
 - name: Dump an existing database to a file (with compression)
@@ -278,7 +278,7 @@ pre_tasks:
 - **loop_control.label** - Упрощает вывод имени текущей БД в логах
 - **when** - Выполняет только если есть базы данных
 
-### Поиск созданных дампов
+#### Поиск созданных дампов
 
 ```yaml
 - name: Find PostgreSQL dump files in /tmp/
@@ -291,7 +291,7 @@ pre_tasks:
 - Ищет созданные файлы дампов в /tmp/
 - **register** - Сохраняет результат в переменную tmp_dumps
 
-### Отладка информации о найденных дампах
+#### Отладка информации о найденных дампах
 
 ```yaml
 - name: Display found dump files (paths)
@@ -309,7 +309,7 @@ pre_tasks:
 ```
 - Выводит количество найденных файлов дампов
 
-### Подготовка к копированию на backup сервер
+#### Подготовка к копированию на backup сервер
 
 ```yaml
 - name: Ensure destination directory exists on backup server
@@ -339,7 +339,7 @@ pre_tasks:
 ```
 - Прерывает выполнение при неудачной проверке SSH
 
-### Копирование дампов на backup сервер (маленькие файлы)
+#### Копирование дампов на backup сервер (маленькие файлы)
 
 ```yaml
 - name: Sync dumps to backup server (small dumps)
@@ -371,6 +371,6 @@ pre_tasks:
 - **ignore_errors** - Продолжает выполнение при ошибках
 - **changed_when/failed_when** - Кастомные условия для определения состояния задачи
 
-### Копирование дампов на backup сервер (большие файлы)
+#### Копирование дампов на backup сервер (большие файлы)
 
 Аналогично предыдущей задаче, но для файлов >=1MB (`selectattr('size', 'ge', 1048576)`).
