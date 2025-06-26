@@ -131,3 +131,40 @@
       changed_when: sync_results.rc == 0 or sync_results.rc == 23
       failed_when: sync_results.rc not in [0, 23, 24, 30]
 ```
+
+#### 6. `playbooks/del_sql.yaml` (Опционально)
+
+Данный плей нужен для удаления дампов, чтобы они не оставались на машине `192.168.87.70`
+```yaml
+---
+- name: Cleanup PostgreSQL dump files from /tmp/
+  hosts: pg_db
+  gather_facts: true
+
+  tasks:
+    - name: Find PostgreSQL dump files in /tmp/
+      ansible.builtin.find:
+        paths: /tmp/
+        patterns: "*.sql.gz"
+        use_regex: no
+      register: tmp_dumps
+
+    - name: Display number of found dump files
+      ansible.builtin.debug:
+        msg: "Обнаружено {{ tmp_dumps.matched }} dump файлов на удаление"
+
+    - name: Remove PostgreSQL dump files from /tmp/
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ tmp_dumps.files }}"
+      when: tmp_dumps.matched > 0
+      loop_control:
+        label: "{{ item.path }}"
+      register: cleanup_result
+
+    - name: Display cleanup results
+      ansible.builtin.debug:
+        msg: "Successfully removed {{ cleanup_result.results | length }} dump files"
+      when: tmp_dumps.matched > 0
+```
