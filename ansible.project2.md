@@ -242,13 +242,13 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
         paths: /tmp/
         patterns: "*.sql.gz"
         use_regex: no
-      tags: control_dump
+      tags: fdump
       register: tmp_dumps
 
     - name: Display number of found dump files
       ansible.builtin.debug:
         msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
-      tags: control_dump
+      tags: fdump
       loop: "{{ tmp_dumps.files }}"
       when: tmp_dumps.matched > 0    # Выполнять только если файлы найдены
 
@@ -256,7 +256,7 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
       ansible.builtin.debug:
         msg: "кол-во выводимых в /tmp/ *.sql.gz: {{ tmp_dumps.matched }}"
 #        var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
-      tags: control_dump
+      tags: fdump
 
 
     - name: Ensure destination directory exists on backup server
@@ -303,7 +303,7 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
       ansible.builtin.file:
         path: "{{ item.path }}"
         state: absent
-      tags: control_dump
+      tags: fdump
       loop: "{{ tmp_dumps.files }}"
       when: tmp_dumps.matched > 0
       loop_control:
@@ -313,7 +313,7 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
     - name: Display cleanup results
       ansible.builtin.debug:
         msg: "Successfully removed {{ cleanup_result.results | length }} dump files"
-      tags: control_dump
+      tags: fdump
       when: tmp_dumps.matched > 0
 
 ```
@@ -327,7 +327,7 @@ ansible -i ~/GIT-projects/backup/inventory/hosts.ini targets -m ping;
 ```bash
 sudo ansible-playbook -C -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml
 ansible-playbook -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml --tags install
-ansible-playbook -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml --tags control_dump
+ansible-playbook -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml --tags fdump
 ```
 
 #### 6. `playbooks/del_sql.yaml` (Опционально)
