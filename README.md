@@ -25,3 +25,5 @@
 ---
 [Примеры работы с Ansible](https://www.dmosk.ru/miniinstruktions.php?mini=ansible-examples)
 <br/> ещё одна [Шпаргалка по Ansible](https://github.com/horv1tz/useful/blob/main/DevOps/Ansible.md)
+
+Данный проект на GIT можно использовать как роль: [palkan-ansible/postgresql/](https://github.com/palkan-ansible/postgresql/tree/master)
