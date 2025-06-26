@@ -1,17 +1,189 @@
-Вот построчное объяснение вашего Ansible-плейбука с указанием назначения каждой директивы:
-
+```yaml
 ---
+- name: To make a backup and dump from pg_db
+  hosts: pg_db
+  gather_facts: true
+
+  # vars_files:
+  #   - ../../group_vars/secret.yml
+
+  pre_tasks:
+    # py installation
+    - name: Install python-psycopg2
+      ansible.builtin.apt:
+        name: python-psycopg2
+        state: present
+      tags:
+        - install
+      when: ((ansible_distribution == "Debian" and ansible_distribution_major_version == "10") or ansible_distribution == "Astra Linux")
+
+    - name: Install python3-psycopg2
+      ansible.builtin.apt:
+        name: python3-psycopg2
+        state: present
+      tags:
+        - install
+      when: ansible_distribution == "Debian" and (ansible_distribution_major_version == "11" or ansible_distribution_major_version == "12")
+
+
+    
+  tasks:
+    # Create storage directory
+       # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=inventory_hostname'
+       # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=ansible_date_time.date'
+         # check https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html
+    - name: Create storage directory using current date
+      ansible.builtin.file:
+        path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+        state: directory
+        mode: '0755'
+
+    # Get database info
+        # check https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_info_module.html
+        # field filter
+    - name: Gather information about PostgreSQL databases only from servers
+      become: true
+      become_user: postgres
+      community.postgresql.postgresql_info:
+        filter: databases
+      register: db_info
+      changed_when: false
+
+    - name: Display/Debug info (db_info.databases.postgres.extensions.plpgsql)
+      ansible.builtin.debug:
+        var: db_info.databases.postgres.extensions.plpgsql
+
+    - name: Display/Debug all database info (db_info.databases)
+      ansible.builtin.debug:
+        var: db_info.databases
+
+    # Create DB dump
+        # Check https://docs.ansible.com/ansible/latest/collections/ansible/builtin/find_module.html#return-values
+    - name: Dump an existing database to a file (with compression)
+      become: true
+      become_method: su
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: "{{ item }}"  # Просто используем сам элемент, который является именем БД
+        state: dump
+        target: "/tmp/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+      loop: "{{ db_info.databases.keys() }}"  # Проходим по ключам словаря
+      when: 
+        - db_info.databases | length > 0    # Только когда db_info.databases существует
+      loop_control:
+        label: "{{ item }}"
+
+    # Check created dump files
+    - name: Find PostgreSQL dump files in /tmp/
+      ansible.builtin.find:
+        paths: /tmp/
+        patterns: "*.sql.gz"
+        use_regex: no
+      register: tmp_dumps
+
+    - name: Display found dump files (paths)
+      ansible.builtin.debug:
+        msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
+      loop: "{{ tmp_dumps.files }}"
+      when: tmp_dumps.matched > 0    # Выполнять только если файлы найдены
+
+    - name: Display number of found dump files
+      ansible.builtin.debug:
+        msg: "кол-во выводимых в /tmp/ *.sql.gz: {{ tmp_dumps.matched }}"
+#        var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
+
+
+    - name: Ensure destination directory exists on backup server
+      delegate_to: 192.168.87.99
+      ansible.builtin.file:
+        path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check SSH connection to backup server
+      ansible.builtin.ping:
+      delegate_to: "{{ groups['targets'][0] }}"
+      register: ssh_check
+      
+    - name: Fail if SSH check failed
+      fail:
+        msg: "Cannot connect to backup server via SSH"
+      when: ssh_check is failed
+
+    - name: Sync dumps to backup server (small dumps)
+      ansible.posix.synchronize:
+        mode: push
+        src: "{{ item.path }}"
+#        dest: "{{ groups['targets'][0] }}:/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+        dest: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+        rsync_opts:
+          - "--inplace"
+          - "--perms"
+          - "--verbose"
+          - "--progress"
+          - "--timeout=150"
+          - "--no-delay-updates"
+        private_key: "~/.ssh/id_rsa"  # Укажите путь к ключу при необходимости
+        archive: no                   # Отключаем автоматические опции (-rlptgoD)
+        checksum: yes
+        compress: yes
+      delegate_to: "{{ groups['targets'][0] }}"
+#      loop: "{{ tmp_dumps.files }}"
+      loop: "{{ tmp_dumps.files | selectattr('size', 'lt', 1048576) | list }}"  # Файлы <1MB
+      when: tmp_dumps.matched > 0 and ssh_check is success
+      register: sync_results
+      ignore_errors: yes
+      changed_when: sync_results.rc == 0 or sync_results.rc == 23
+      failed_when: sync_results.rc not in [0, 23, 24, 30]
+
+
+    - name: Sync dumps to backup server (big dumps)
+      ansible.posix.synchronize:
+        mode: push
+        src: "{{ item.path }}"
+#        dest: "{{ groups['targets'][0] }}:/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+        dest: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+        rsync_opts:
+          - "--inplace"
+          - "--perms"
+          - "--verbose"
+          - "--progress"
+          - "--timeout=150"
+          - "--no-delay-updates"
+        private_key: "~/.ssh/id_rsa"  # Укажите путь к ключу при необходимости
+        archive: no                   # Отключаем автоматические опции (-rlptgoD)
+        checksum: yes
+        compress: yes
+      delegate_to: "{{ groups['targets'][0] }}"
+      loop: "{{ tmp_dumps.files | selectattr('size', 'ge', 1048576) | list }}"  # Файлы >=1MB
+      when: tmp_dumps.matched > 0 and ssh_check is success
+      register: sync_results
+      ignore_errors: yes
+      changed_when: sync_results.rc == 0 or sync_results.rc == 23
+      failed_when: sync_results.rc not in [0, 23, 24, 30]
+
+```
+
+
+
+
+
+# Разбор Ansible Playbook для резервного копирования PostgreSQL
+
+Этот playbook выполняет резервное копирование баз данных PostgreSQL на удаленный сервер. Давайте разберем его построчно:
+
+## Основные директивы playbook
 
 ```yaml
 - name: To make a backup and dump from pg_db
   hosts: pg_db
   gather_facts: true
 ```
-1. `name` - Описание плейбука (просто мета-информация для удобства)
-2. `hosts: pg_db` - Целевая группа хостов из inventory, на которых будет выполняться плейбук
-3. `gather_facts: true` - Включение сбора фактов об удаленных хостах (используется позже для проверки дистрибутива)
+- **name** - Описание задачи/playbook
+- **hosts: pg_db** - Определяет группу хостов, на которых будет выполняться playbook
+- **gather_facts: true** - Включает сбор фактов о системе перед выполнением задач
 
----
+## Pre-tasks (Предварительные задачи)
 
 ```yaml
 pre_tasks:
@@ -23,15 +195,9 @@ pre_tasks:
       - install
     when: ((ansible_distribution == "Debian" and ansible_distribution_major_version == "10") or ansible_distribution == "Astra Linux")
 ```
-1. `pre_tasks` - Блок задач, выполняемых ДО основных задач
-2. `name` - Описание задачи
-3. `ansible.builtin.apt` - Использование модуля apt для управления пакетами
-4. `name: python-psycopg2` - Устанавливаемый пакет
-5. `state: present` - Гарантирует, что пакет будет установлен
-6. `tags: install` - Позволяет запускать только эту задачу с тегом `--tags install`
-7. `when` - Условие выполнения (только для Debian 10 или Astra Linux)
-
----
+- Устанавливает python-psycopg2 для Debian 10 или Astra Linux
+- **when** - Условное выполнение задачи
+- **tags** - Позволяет запускать только помеченные задачи
 
 ```yaml
   - name: Install python3-psycopg2
@@ -42,286 +208,169 @@ pre_tasks:
       - install
     when: ansible_distribution == "Debian" and (ansible_distribution_major_version == "11" or ansible_distribution_major_version == "12")
 ```
-Аналогично предыдущей задаче, но:
-- Устанавливает python3-psycopg2
-- Для Debian 11 и 12 версий
+- Аналогично, но для Debian 11/12 устанавливает python3-версию
 
----
+## Основные задачи (Tasks)
 
-```yaml
-tasks:
-  - name: Create storage directory using current date
-    ansible.builtin.file:
-      path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
-      state: directory
-      mode: '0755'
-```
-1. `tasks` - Начало основных задач
-2. `ansible.builtin.file` - Модуль для работы с файлами/директориями
-3. `path` - Динамический путь с использованием:
-   - `inventory_hostname` - имя хоста из inventory
-   - `ansible_date_time.date` - текущая дата (из собранных фактов)
-4. `state: directory` - Гарантирует существование директории
-5. `mode: '0755'` - Устанавливает права доступа
-
----
+### Создание директории для хранения
 
 ```yaml
-  - name: Gather information about PostgreSQL databases
-    become: true
-    become_user: postgres
-    community.postgresql.postgresql_info:
-      filter: databases
-    register: db_info
-    changed_when: false
+- name: Create storage directory using current date
+  ansible.builtin.file:
+    path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+    state: directory
+    mode: '0755'
 ```
-1. `become: true` - Включение повышения привилегий
-2. `become_user: postgres` - Выполнение от пользователя postgres
-3. `community.postgresql.postgresql_info` - Модуль для получения информации о PostgreSQL
-4. `filter: databases` - Получаем только информацию о БД
-5. `register: db_info` - Сохраняет вывод в переменную db_info
-6. `changed_when: false` - Всегда отмечает задачу как неизменяющую систему (idempotency)
+- Создает директорию с именем текущей даты для хранения резервных копий
+- **mode** - Устанавливает права доступа 0755
 
----
+### Получение информации о базах данных
 
 ```yaml
-  - name: Display/Debug info
-    ansible.builtin.debug:
-      var: db_info.databases.postgres.extensions.plpgsql
+- name: Gather information about PostgreSQL databases only from servers
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_info:
+    filter: databases
+  register: db_info
+  changed_when: false
 ```
-Отладочный вывод конкретного расширения PL/pgSQL в БД postgres
+- **become/become_user** - Выполняет задачу от имени пользователя postgres
+- **filter: databases** - Собирает только информацию о базах данных
+- **register** - Сохраняет результат в переменную db_info
+- **changed_when: false** - Всегда отмечает задачу как неизмененную
 
----
+### Отладка информации
 
 ```yaml
-  - name: Display/Debug all database info
-    ansible.builtin.debug:
-      var: db_info.databases
+- name: Display/Debug info (db_info.databases.postgres.extensions.plpgsql)
+  ansible.builtin.debug:
+    var: db_info.databases.postgres.extensions.plpgsql
 ```
-Отладочный вывод всей информации о БД (для проверки структуры данных)
-
----
+- Выводит отладочную информацию о расширении plpgsql
 
 ```yaml
-  - name: Dump an existing database to a file
-    become: true
-    become_method: su
-    become_user: postgres
-    community.postgresql.postgresql_db:
-      name: "{{ item }}"
-      state: dump
-      target: "/tmp/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
-    loop: "{{ db_info.databases.keys() }}"
-    when: 
-      - db_info.databases | length > 0
-    loop_control:
-      label: "{{ item }}"
+- name: Display/Debug all database info (db_info.databases)
+  ansible.builtin.debug:
+    var: db_info.databases
 ```
-1. `become_method: su` - Указывает метод повышения привилегий (вместо sudo)
-2. `community.postgresql.postgresql_db` - Модуль для работы с БД PostgreSQL
-3. `name: "{{ item }}"` - Имя БД из текущего элемента цикла
-4. `state: dump` - Режим создания дампа
-5. `target` - Путь к дампу с динамическими частями:
-   - `item` - имя БД
-   - `ansible_date_time.date` - текущая дата
-6. `loop` - Цикл по именам всех БД (ключам словаря db_info.databases)
-7. `when` - Условие (если есть хотя бы одна БД)
-8. `loop_control.label` - Упрощает вывод в консоли (показывает только имя БД вместо полного item)
+- Выводит полную информацию о всех базах данных
 
-
-усложнённый вариант
-```yaml
-    # Create DB dump
-    - name: Dump an existing database to a file (with compression)
-      become: true
-      become_method: su
-      become_user: postgres
-      community.postgresql.postgresql_db:
-        name: "{{ item.key }}"  # item.name нельзя использовать
-        state: dump
-        target: "/tmp/{{ item.key }}-{{ ansible_date_time.date }}.sql.gz"
-      loop: "{{ db_info.databases | dict2items }}"
-      when: 
-        - db_info.databases | length > 0
-      loop_control:
-        label: "{{ item.key }}"
-```
-
-### Ключевые отличия и объяснение:
-
-1. **Обработка словаря БД**:
-   - В оригинале: `loop: "{{ db_info.databases.keys() }}"`
-     - Проходит только по ключам словаря (именам БД)
-   - В альтернативе: `loop: "{{ db_info.databases | dict2items }}"`
-     - Преобразует словарь в список словарей с элементами `key` и `value`
-     - Дает доступ не только к имени БД (`item.key`), но и ко всей информации о ней (`item.value`)
-
-2. **Использование `item.key`**:
-   - `name: "{{ item.key }}"` - более явное указание, что берется именно ключ словаря
-   - В оригинале `item` уже был ключом, здесь `item` - это объект с ключами `key` и `value`
-
-3. **Потенциальные преимущества альтернативы**:
-   - Если бы потребовалась дополнительная информация о БД (например, размер или владелец), она доступна через `item.value`
-   - Более четкая структура данных при обработке
-   - Единообразие - всегда работаем с `item.key`, даже если в будущем изменится структура данных
-
-4. **Когда лучше использовать этот вариант**:
-   - Когда нужно принимать решения на основе свойств БД (например, не делать дамп template-БД)
-   - Для лучшей читаемости кода (явное указание `key` вместо неявного использования словаря)
-   - Если планируется расширение функционала с использованием дополнительных атрибутов БД
-
-5. **Недостатки**:
-   - Немного более сложный синтаксис
-   - Избыточность, если не нужны дополнительные атрибуты БД
-
-### Пример доступа к дополнительным свойствам (если понадобится):
-```yaml
-when: 
-  - item.value.owner == 'postgres'  # фильтрация по владельцу
-  - item.value.size < 1000000  # фильтрация по размеру
-```
-
----
-
-см. [Return Values](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/find_module.html#return-values) модуля ansible.builtin.find
+### Создание дампов баз данных
 
 ```yaml
-  - name: Find PostgreSQL dump files in /tmp/
-    ansible.builtin.find:
-      paths: /tmp/
-      patterns: "*.sql.gz"
-      use_regex: no
-    register: tmp_dumps
+- name: Dump an existing database to a file (with compression)
+  become: true
+  become_method: su
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: "{{ item }}"
+    state: dump
+    target: "/tmp/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+  loop: "{{ db_info.databases.keys() }}"
+  when: 
+    - db_info.databases | length > 0
+  loop_control:
+    label: "{{ item }}"
 ```
-1. `ansible.builtin.find` - Поиск файлов
-2. `paths: /tmp/` - Где ищем
-3. `patterns: "*.sql.gz"` - Маска файлов
-4. `use_regex: no` - Без использования regex
-5. `register: tmp_dumps` - Сохраняет результат поиска в переменную
+- Создает сжатые дампы всех баз данных
+- **loop** - Итерируется по всем именам баз данных
+- **loop_control.label** - Упрощает вывод имени текущей БД в логах
+- **when** - Выполняет только если есть базы данных
 
-Результат работы `find` имеет примерно такой вид:
-```json
-{
-  "changed": false,
-  "examined": 42,
-  "files": [
-    {
-      "path": "/tmp/db1-2024-01-01.sql.gz",
-      "size": 1024,
-      "owner": "postgres"
-    },
-    {
-      "path": "/tmp/db2-2024-01-01.sql.gz",
-      "size": 2048,
-      "owner": "postgres"
-    }
-  ],
-  "matched": 2
-}
+### Поиск созданных дампов
+
+```yaml
+- name: Find PostgreSQL dump files in /tmp/
+  ansible.builtin.find:
+    paths: /tmp/
+    patterns: "*.sql.gz"
+    use_regex: no
+  register: tmp_dumps
 ```
-- `files` — это список словарей, где каждый словарь описывает один найденный файл (путь, размер, владельца и т. д.).
+- Ищет созданные файлы дампов в /tmp/
+- **register** - Сохраняет результат в переменную tmp_dumps
 
-В Ansible, когда вы используете модуль `find` и регистрируете результат в переменную (например, `tmp_dumps`), эта переменная содержит несколько полезных атрибутов. Давайте разберёмся, какие значения может принимать `loop: "{{ tmp_dumps.files }}"` и что ещё доступно в `tmp_dumps.*`.
+### Отладка информации о найденных дампах
 
-### Основные атрибуты `tmp_dumps` после использования модуля `find`:
-
-1. **`tmp_dumps.files`** - это список словарей, где каждый словарь представляет найденный файл и содержит информацию о нём. Каждый элемент списка имеет следующие ключи:
-   - `path` - полный путь к файлу (например, "/tmp/backup.sql.gz")
-   - `filename` - имя файла (например, "backup.sql.gz")
-   - `size` - размер файла в байтах
-   - `uid` - user ID владельца
-   - `gid` - group ID владельца
-   - `mode` - права доступа (например, "0644")
-   - `mtime` - время последнего изменения (timestamp)
-   - `ctime` - время создания (timestamp)
-   - `isuid`, `isgid`, `isreg`, `isdir`, `ischr`, `isblk`, `isfifo`, `islnk`, `issock` - булевы флаги, указывающие тип файла
-
-2. **`tmp_dumps.matched`** - количество найденных файлов (целое число)
-
-3. **`tmp_dumps.skipped_paths`** - словарь с путями, которые были пропущены (например, из-за отсутствия прав доступа)
-
-### Пример использования в loop:
-Когда вы используете `loop: "{{ tmp_dumps.files }}"`, Ansible будет итерироваться по списку найденных файлов. В каждом цикле `item` будет содержать словарь с информацией об одном файле.
-
-Например, ваш debug task:
 ```yaml
 - name: Display found dump files (paths)
   ansible.builtin.debug:
-    msg: "{{ item.path }}"
+    msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
   loop: "{{ tmp_dumps.files }}"
+  when: tmp_dumps.matched > 0
 ```
-Будет выводить полный путь каждого найденного файла.
-
-### Другие примеры использования:
-```yaml
-- name: Display file info
-  ansible.builtin.debug:
-    msg: "File {{ item.filename }} ({{ item.path }}) has size {{ item.size }} bytes and mode {{ item.mode }}"
-  loop: "{{ tmp_dumps.files }}"
-```
+- Выводит информацию о каждом найденном файле дампа
 
 ```yaml
-- name: Check if any files were found
+- name: Display number of found dump files
   ansible.builtin.debug:
-    msg: "No dump files found in /tmp/"
-  when: tmp_dumps.matched == 0
+    msg: "кол-во выводимых в /tmp/ *.sql.gz: {{ tmp_dumps.matched }}"
 ```
+- Выводит количество найденных файлов дампов
+
+### Подготовка к копированию на backup сервер
 
 ```yaml
-- name: Process only regular files
-  ansible.builtin.debug:
-    msg: "Processing regular file {{ item.path }}"
-  loop: "{{ tmp_dumps.files }}"
-  when: item.isreg
+- name: Ensure destination directory exists on backup server
+  delegate_to: 192.168.87.99
+  ansible.builtin.file:
+    path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+    state: directory
+    mode: '0755'
 ```
-
-Таким образом, `tmp_dumps.files` - это список словарей с информацией о файлах, а `tmp_dumps.*` содержит дополнительные метаданные о результатах поиска.
-
-
----
+- **delegate_to** - Выполняет задачу на backup сервере
+- Создает целевую директорию на backup сервере
 
 ```yaml
-  - name: Display found dump files
-    ansible.builtin.debug:
-      var: tmp_dumps.files
+- name: Check SSH connection to backup server
+  ansible.builtin.ping:
+  delegate_to: "{{ groups['targets'][0] }}"
+  register: ssh_check
 ```
-Отладочный вывод найденных файлов дампов (проверка результата)
+- Проверяет SSH соединение с backup сервером
+- **register** - Сохраняет результат проверки
 
-- `tmp_dumps` — это переменная, зарегистрированная (register: tmp_dumps) в предыдущей задаче с модулем find.
-- `.files` — это атрибут (поле) объекта tmp_dumps, содержащий список найденных файлов.
-- `tmp_dumps.files` даёт доступ к списку файлов.
-
-
-Альтернативный вариант с применеием jinja2:
 ```yaml
-- name: Display summary info
-  ansible.builtin.debug:
-    msg: |
-      Found {{ tmp_dumps.matched }} files:
-      {% for file in tmp_dumps.files %}
-      - {{ file.path }} (size: {{ file.size }} bytes)
-      {% endfor %}
+- name: Fail if SSH check failed
+  fail:
+    msg: "Cannot connect to backup server via SSH"
+  when: ssh_check is failed
 ```
+- Прерывает выполнение при неудачной проверке SSH
 
-оно же, но двумя директивами
+### Копирование дампов на backup сервер (маленькие файлы)
+
 ```yaml
-- name: Display found dump files (paths)
-  ansible.builtin.debug:
-    msg: "{{ item.path }}"
-  loop: "{{ tmp_dumps.files }}"
-
-- name: Display number of found files
-  ansible.builtin.debug:
-    var: tmp_dumps.matched
+- name: Sync dumps to backup server (small dumps)
+  ansible.posix.synchronize:
+    mode: push
+    src: "{{ item.path }}"
+    dest: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+    rsync_opts:
+      - "--inplace"
+      - "--perms"
+      - "--verbose"
+      - "--progress"
+      - "--timeout=150"
+      - "--no-delay-updates"
+    private_key: "~/.ssh/id_rsa"
+    archive: no
+    checksum: yes
+    compress: yes
+  delegate_to: "{{ groups['targets'][0] }}"
+  loop: "{{ tmp_dumps.files | selectattr('size', 'lt', 1048576) | list }}"
+  when: tmp_dumps.matched > 0 and ssh_check is success
+  register: sync_results
+  ignore_errors: yes
+  changed_when: sync_results.rc == 0 or sync_results.rc == 23
+  failed_when: sync_results.rc not in [0, 23, 24, 30]
 ```
+- **selectattr('size', 'lt', 1048576)** - Фильтрует файлы меньше 1MB
+- **rsync_opts** - Опции для rsync
+- **ignore_errors** - Продолжает выполнение при ошибках
+- **changed_when/failed_when** - Кастомные условия для определения состояния задачи
 
----
+### Копирование дампов на backup сервер (большие файлы)
 
-Общая логика плейбука:
-1. Установка зависимостей (psycopg2) в зависимости от ОС
-2. Создание целевой директории для бэкапов
-3. Сбор информации о существующих БД
-4. Создание сжатых дампов всех БД
-5. Проверка результатов создания дампов
-
-
+Аналогично предыдущей задаче, но для файлов >=1MB (`selectattr('size', 'ge', 1048576)`).
