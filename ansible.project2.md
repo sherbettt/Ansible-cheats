@@ -132,8 +132,6 @@ ssh root@192.168.87.99  # from *.87.70;
 ```bash
 # На pg_db (192.168.87.70):
 which rsync || apt install rsync -y
-```
-```bash
 # На backup-сервере, он же target (192.168.87.99):
 which rsync || apt install rsync -y
 ```
