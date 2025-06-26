@@ -75,11 +75,15 @@ become_ask_pass = False
 #### 3. `inventory/hosts.ini`
 ```ini
 [pg_db]
-192.168.87.70
+192.168.87.70 ansible_user=root 
+#ansible_ssh_private_key_file=~/.ssh/ansible_key
 
 [pg_db:vars]
 ansible_python_interpreter=/usr/bin/python3.11
 # reason is https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html
+
+[targets]
+192.168.87.99 ansible_user=root
 ```
 
 #### 4. Сделаем ручной опрос баз данных
@@ -118,6 +122,30 @@ ansible-config dump | grep COLLECTIONS_PATHS
 Проверьте, что rsync установлен на управляющем узле:
 ```bash
 which rsync || sudo apt install rsync
+```
+
+Учитывая секцию *`[targets]`* в **`inventory/hosts.ini`**, мы будем перекидывать бэкап с `*.87.70` машины на `*.87.99`, а не на ноут (`*.87.136`).
+<br/> Желательно проверить настройки **`sshd_config`** на обоих серверах и проверить командами `rsync`:
+```bash
+ssh root@192.168.87.99  # from *.87.70;
+```
+```bash
+# На pg_db (192.168.87.70):
+which rsync || apt install rsync -y
+```
+```bash
+# На backup-сервере, он же target (192.168.87.99):
+which rsync || apt install rsync -y
+```
+```bash
+На pg_db (192.168.87.70) выполните:
+# Создаем тестовый файл
+echo "test" > /tmp/test_rsync.txt
+
+# Пробуем отправить его на backup-сервер
+rsync -avz --progress -e "ssh -i ~/.ssh/ansible_key" /tmp/test_rsync.txt root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/$(hostname)/$(date +%Y-%m-%d)/
+
+rsync -avz --progress /tmp/ваша_база-$(date +%Y-%m-%d).sql.gz root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/$(hostname)/$(date +%Y-%m-%d)/
 ```
 
 
@@ -193,7 +221,7 @@ which rsync || sudo apt install rsync
         target: "/tmp/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
       loop: "{{ db_info.databases.keys() }}"  # Проходим по ключам словаря
       when: 
-        - db_info.databases | length > 0
+        - db_info.databases | length > 0    # Только когда db_info.databases существует
       loop_control:
         label: "{{ item }}"
 
@@ -217,17 +245,44 @@ which rsync || sudo apt install rsync
 #        var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
 
 
-    # Fetch received dump files to 192.168.87.136
-         # ansible-galaxy collection install ansible.posix
-    - name: Sync from 87.70 to 87.136
-#      ansible_collections.ansible.posix.synchronize:
-#      community.general.synchronize:
-      ansible.posix.synchronize:
-        mode: pull     # src is 87.70
-        src: /etc/runtel/
-        dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{inventory_hostname}}/configs/{{ansible_date_time.date}}/
-      delegate_to: 192.168.87.136
+    - name: Check if destination directory exists on backup server (192.168.87.99)
+      delegate_to: 192.168.87.99
+      ansible.builtin.command: ls -ld "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+      register: dir_check
+      ignore_errors: yes
 
+    - name: Display directory check result
+      debug:
+        var: dir_check
+
+
+    - name: Sync dumps to backup server
+      delegate_to: 192.168.87.99
+      ansible.posix.synchronize:
+        rsync_path: "/usr/bin/rsync"
+        mode: push
+        src: "{{ item.path }}"
+        rsync_opts:               # man rsync
+          - "--inplace"
+          - "--perms"
+          - "--verbose"
+          - "--progress"
+        dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/
+      loop: "{{ tmp_dumps.files }}"
+      when: tmp_dumps.matched > 0
+
+
+
+    # Fetch received dump files to 192.168.87.99
+#- hosts: targets
+#  tasks:
+#    - name: Sync from 192.168.87.70 to 192.168.87.99
+#      ansible.posix.synchronize:
+#        mode: pull     # from 87.70
+#        src: "{{item.path}}"
+#        rsync_path: "rsync"  # Remove sudo from rsync path
+#        dest: /usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/
+#      loop: "{{ hostvars['192.168.87.70']['tmp_dumps'].files }}"    # чтобы перем. tmp_dumps из 1 плб использовалась во втором
 
 
 
