@@ -270,59 +270,26 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
         msg: "Cannot connect to backup server via SSH"
       when: ssh_check is failed
 
-    - name: Sync dumps to backup server (small dumps)
+    - name: Sync dumps to backup server
       ansible.posix.synchronize:
         mode: push
         src: "{{ item.path }}"
 #        dest: "{{ groups['targets'][0] }}:/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
         dest: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
         rsync_opts:
-          - "--inplace"
           - "--perms"
           - "--verbose"
-          - "--progress"
-          - "--timeout=150"
-          - "--no-delay-updates"
         private_key: "~/.ssh/id_rsa"  # Укажите путь к ключу при необходимости
         archive: no                   # Отключаем автоматические опции (-rlptgoD)
         checksum: yes
         compress: yes
       delegate_to: "{{ groups['targets'][0] }}"
-#      loop: "{{ tmp_dumps.files }}"
-      loop: "{{ tmp_dumps.files | selectattr('size', 'lt', 1048576) | list }}"  # Файлы <1MB
+      loop: "{{ tmp_dumps.files }}"
       when: tmp_dumps.matched > 0 and ssh_check is success
       register: sync_results
       ignore_errors: yes
       changed_when: sync_results.rc == 0 or sync_results.rc == 23
       failed_when: sync_results.rc not in [0, 23, 24, 30]
-
-
-    - name: Sync dumps to backup server (big dumps)
-      ansible.posix.synchronize:
-        mode: push
-        src: "{{ item.path }}"
-#        dest: "{{ groups['targets'][0] }}:/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
-        dest: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
-        rsync_opts:
-          - "--inplace"
-          - "--perms"
-          - "--verbose"
-          - "--progress"
-          - "--timeout=150"
-          - "--no-delay-updates"
-        private_key: "~/.ssh/id_rsa"  # Укажите путь к ключу при необходимости
-        archive: no                   # Отключаем автоматические опции (-rlptgoD)
-        checksum: yes
-        compress: yes
-      delegate_to: "{{ groups['targets'][0] }}"
-      loop: "{{ tmp_dumps.files | selectattr('size', 'ge', 1048576) | list }}"  # Файлы >=1MB
-      when: tmp_dumps.matched > 0 and ssh_check is success
-      register: sync_results
-      ignore_errors: yes
-      changed_when: sync_results.rc == 0 or sync_results.rc == 23
-      failed_when: sync_results.rc not in [0, 23, 24, 30]
-
-
 
 ```
 Предварителньо проверим:
