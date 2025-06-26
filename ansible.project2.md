@@ -325,7 +325,7 @@ ansible -i ~/GIT-projects/backup/inventory/hosts.ini targets -m ping;
 
 Запускаем:
 ```bash
-sudo ansible-playbook -C -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml
+ansible-playbook -C -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml
 ansible-playbook -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml --tags install
 ansible-playbook -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml --tags fdump
 ```
