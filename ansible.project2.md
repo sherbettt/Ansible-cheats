@@ -295,6 +295,11 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
 
 
 ```
+Предварителньо проверим:
+```bash
+ansible -i ~/GIT-projects/backup/inventory/hosts.ini --list-hosts targets;
+ansible -i ~/GIT-projects/backup/inventory/hosts.ini targets -m ping;
+```
 
 Запускаем:
 ```bash
