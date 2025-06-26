@@ -152,6 +152,7 @@
         msg: "Successfully removed {{ cleanup_result.results | length }} dump files"
       tags: fdump
       when: tmp_dumps.matched > 0
+
 ```
 
 
