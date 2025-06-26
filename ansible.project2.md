@@ -138,7 +138,9 @@ which rsync || apt install rsync -y
 ```bash
 На pg_db (192.168.87.70) выполните:
 # Создаем тестовый файл
-echo "test" > /tmp/test_rsync.txt
+echo "This is a test file" > /tmp/test_rsync.txt
+chmod 644 /tmp/test_rsync.txt
+ls -la /tmp/test_rsync.txt
 
 # На 192.168.87.99 выполнить:
 mkdir -p "/usr/local/runtel/storage_files/telecoms/runtel.org/dev70/$(date +%Y-%m-%d)"
