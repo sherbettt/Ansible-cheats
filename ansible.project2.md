@@ -151,6 +151,10 @@ rsync -avz --progress /tmp/test_rsync.txt root@192.168.87.99:/usr/local/runtel/s
 rsync -avz --progress -e "ssh -i ~/.ssh/ansible_key" /tmp/test_rsync.txt root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/$(hostname)/$(date +%Y-%m-%d)/
 rsync -avz --progress /tmp/ваша_база-$(date +%Y-%m-%d).sql.gz root@192.168.87.99:/usr/local/runtel/storage_files/telecoms/runtel.org/$(hostname)/$(date +%Y-%m-%d)/
 ```
+```c
+ssh root@192.168.87.99 "ls -la /usr/local/runtel/storage_files/telecoms/runtel.org/dev70/$(date +%Y-%m-%d)/"
+ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/dev70/$(date +%Y-%m-%d)/test_rsync.txt"
+```
 
 
 (Читай [Playbooks Delegation](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_delegation.html) )
