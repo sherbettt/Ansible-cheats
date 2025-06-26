@@ -37,18 +37,17 @@ psql -h 192.168.87.70 -U postgres -W
 
 ### 1. Создаём структуру проекта на `192.168.87.136`/GitLab.
   ```ini
-  ┌─ kirill ~/GIT-projects/backup 
-  └─ $ treel -f
-  [kirill   kirill           118 Jun 24 17:07]  .
-  ├── [kirill   kirill           503 Jun 24 13:15]  ./ansible.cfg
-  ├── [kirill   kirill             0 Jun 24 11:44]  ./facts_cache
-  ├── [kirill   kirill             0 Jun 24 11:30]  ./group_vars
-  ├── [kirill   kirill            18 Jun 24 11:35]  ./inventory
-  │   └── [kirill   kirill            21 Jun 24 13:13]  ./inventory/hosts.ini
-  ├── [kirill   kirill            50 Jun 24 12:02]  ./playbooks
-  │   ├── [kirill   kirill          2016 Jun 24 16:07]  ./playbooks/dump_play.yml
-  │   └── [kirill   kirill          3389 Jun 24 12:02]  ./playbooks/playbook.yml
-  └── [kirill   kirill             0 Jun 24 11:30]  ./roles
+  
+  .
+  ├──  ./ansible.cfg
+  ├──  ./facts_cache
+  ├──  ./group_vars
+  ├──  ./inventory
+  │   └──  ./inventory/hosts.ini
+  ├──  ./playbooks
+  │   ├──  ./playbooks/dump_play.yml
+  │   └──  ./playbooks/playbook.yml
+  └──  ./roles
   ```
 
 #### 2. `ansible.cfg`
