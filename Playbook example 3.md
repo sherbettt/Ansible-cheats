@@ -79,11 +79,13 @@
         paths: /tmp/
         patterns: "*.sql.gz"
         use_regex: no
+      tags: fdump
       register: tmp_dumps
 
-    - name: Display found dump files (paths)
+    - name: Display number of found dump files
       ansible.builtin.debug:
         msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
+      tags: fdump
       loop: "{{ tmp_dumps.files }}"
       when: tmp_dumps.matched > 0    # Выполнять только если файлы найдены
 
@@ -91,6 +93,7 @@
       ansible.builtin.debug:
         msg: "кол-во выводимых в /tmp/ *.sql.gz: {{ tmp_dumps.matched }}"
 #        var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
+      tags: fdump
 
 
     - name: Ensure destination directory exists on backup server
@@ -130,33 +133,14 @@
       ignore_errors: yes
       changed_when: sync_results.rc == 0 or sync_results.rc == 23
       failed_when: sync_results.rc not in [0, 23, 24, 30]
-```
 
-#### 6. `playbooks/del_sql.yaml` (Опционально)
-
-Данный плей нужен для удаления дампов, чтобы они не оставались на машине `192.168.87.70`
-```yaml
----
-- name: Cleanup PostgreSQL dump files from /tmp/
-  hosts: pg_db
-  gather_facts: true
-
-  tasks:
-    - name: Find PostgreSQL dump files in /tmp/
-      ansible.builtin.find:
-        paths: /tmp/
-        patterns: "*.sql.gz"
-        use_regex: no
-      register: tmp_dumps
-
-    - name: Display number of found dump files
-      ansible.builtin.debug:
-        msg: "Обнаружено {{ tmp_dumps.matched }} dump файлов на удаление"
-
+     # Current step uses 'Find PostgreSQL dump files in /tmp/' step
+     # Just delete dump files from 192.168.87.70
     - name: Remove PostgreSQL dump files from /tmp/
       ansible.builtin.file:
         path: "{{ item.path }}"
         state: absent
+      tags: fdump
       loop: "{{ tmp_dumps.files }}"
       when: tmp_dumps.matched > 0
       loop_control:
@@ -166,5 +150,12 @@
     - name: Display cleanup results
       ansible.builtin.debug:
         msg: "Successfully removed {{ cleanup_result.results | length }} dump files"
+      tags: fdump
       when: tmp_dumps.matched > 0
 ```
+
+
+
+
+
+
