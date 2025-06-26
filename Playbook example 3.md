@@ -166,24 +166,23 @@
 
 
 
+# Подробный разбор Ansible плейбука для резервного копирования PostgreSQL
 
+Этот плейбук предназначен для создания резервных копий (дампа) баз данных PostgreSQL и их передачи на backup-сервер. Разберём его построчно:
 
-## Разбор Ansible Playbook для резервного копирования PostgreSQL
-
-Этот playbook выполняет резервное копирование баз данных PostgreSQL на удаленный сервер. Давайте разберем его построчно:
-
-### Основные директивы playbook
+## Общая структура
 
 ```yaml
 - name: To make a backup and dump from pg_db
   hosts: pg_db
   gather_facts: true
 ```
-- **name** - Описание задачи/playbook
-- **hosts: pg_db** - Определяет группу хостов, на которых будет выполняться playbook
-- **gather_facts: true** - Включает сбор фактов о системе перед выполнением задач
 
-### Pre-tasks (Предварительные задачи)
+- **name** - Описание назначения плейбука
+- **hosts: pg_db** - Применяется к группе хостов pg_db из inventory
+- **gather_facts: true** - Собирает информацию о целевых хостах (ОС, версия и т.д.)
+
+## Предварительные задачи (pre_tasks)
 
 ```yaml
 pre_tasks:
@@ -195,9 +194,10 @@ pre_tasks:
       - install
     when: ((ansible_distribution == "Debian" and ansible_distribution_major_version == "10") or ansible_distribution == "Astra Linux")
 ```
-- Устанавливает python-psycopg2 для Debian 10 или Astra Linux
-- **when** - Условное выполнение задачи
-- **tags** - Позволяет запускать только помеченные задачи
+
+- Устанавливает python-psycopg2 (Python 2) для Debian 10 или Astra Linux
+- **tags: install** - Позволяет запускать только эту задачу с тегом
+- **when** - Условие для выполнение на определённых ОС
 
 ```yaml
   - name: Install python3-psycopg2
@@ -208,11 +208,12 @@ pre_tasks:
       - install
     when: ansible_distribution == "Debian" and (ansible_distribution_major_version == "11" or ansible_distribution_major_version == "12")
 ```
-- Аналогично, но для Debian 11/12 устанавливает python3-версию
 
-### Основные задачи (Tasks)
+- Аналогично устанавливает python3-psycopg2 для Debian 11/12
 
-#### Создание директории для хранения
+## Основные задачи (tasks)
+
+### Создание директории для хранения
 
 ```yaml
 - name: Create storage directory using current date
@@ -221,10 +222,13 @@ pre_tasks:
     state: directory
     mode: '0755'
 ```
-- Создает директорию с именем текущей даты для хранения резервных копий
-- **mode** - Устанавливает права доступа 0755
 
-#### Получение информации о базах данных
+- Создаёт директорию с именем текущей даты на целевом хосте
+- Использует переменные:
+  - `inventory_hostname` - имя хоста из inventory
+  - `ansible_date_time.date` - текущая дата
+
+### Получение информации о БД
 
 ```yaml
 - name: Gather information about PostgreSQL databases only from servers
@@ -235,28 +239,29 @@ pre_tasks:
   register: db_info
   changed_when: false
 ```
-- **become/become_user** - Выполняет задачу от имени пользователя postgres
-- **filter: databases** - Собирает только информацию о базах данных
-- **register** - Сохраняет результат в переменную db_info
-- **changed_when: false** - Всегда отмечает задачу как неизмененную
 
-#### Отладка информации
+- Получает информацию о базах данных PostgreSQL
+- **become: true** - Повышение привилегий
+- **become_user: postgres** - Выполнение от пользователя postgres
+- **filter: databases** - Получает только информацию о БД
+- **register: db_info** - Сохраняет результат в переменную db_info
+- **changed_when: false** - Всегда отмечает задачу как неизменённую
+
+### Отладка информации о БД
 
 ```yaml
 - name: Display/Debug info (db_info.databases.postgres.extensions.plpgsql)
   ansible.builtin.debug:
     var: db_info.databases.postgres.extensions.plpgsql
-```
-- Выводит отладочную информацию о расширении plpgsql
 
-```yaml
 - name: Display/Debug all database info (db_info.databases)
   ansible.builtin.debug:
     var: db_info.databases
 ```
-- Выводит полную информацию о всех базах данных
 
-#### Создание дампов баз данных
+- Вывод отладочной информации о БД (для проверки)
+
+### Создание дампов БД
 
 ```yaml
 - name: Dump an existing database to a file (with compression)
@@ -273,12 +278,13 @@ pre_tasks:
   loop_control:
     label: "{{ item }}"
 ```
-- Создает сжатые дампы всех баз данных
-- **loop** - Итерируется по всем именам баз данных
-- **loop_control.label** - Упрощает вывод имени текущей БД в логах
-- **when** - Выполняет только если есть базы данных
 
-#### Поиск созданных дампов
+- Создаёт сжатые дампы всех БД
+- **loop** - Итерируется по всем именам БД из db_info
+- **target** - Сохраняет в /tmp с именем БД и датой
+- **loop_control.label** - Упрощает вывод, показывая только имя БД вместо полных данных
+
+### Поиск созданных дампов
 
 ```yaml
 - name: Find PostgreSQL dump files in /tmp/
@@ -287,29 +293,23 @@ pre_tasks:
     patterns: "*.sql.gz"
     use_regex: no
   register: tmp_dumps
-```
-- Ищет созданные файлы дампов в /tmp/
-- **register** - Сохраняет результат в переменную tmp_dumps
 
-#### Отладка информации о найденных дампах
-
-```yaml
 - name: Display found dump files (paths)
   ansible.builtin.debug:
     msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
   loop: "{{ tmp_dumps.files }}"
   when: tmp_dumps.matched > 0
-```
-- Выводит информацию о каждом найденном файле дампа
 
-```yaml
 - name: Display number of found dump files
   ansible.builtin.debug:
     msg: "кол-во выводимых в /tmp/ *.sql.gz: {{ tmp_dumps.matched }}"
 ```
-- Выводит количество найденных файлов дампов
 
-#### Подготовка к копированию на backup сервер
+- Находит все созданные дампы в /tmp/
+- Выводит информацию о найденных файлах (путь, размер, права)
+- Показывает количество найденных файлов
+
+### Подготовка к копированию на backup-сервер
 
 ```yaml
 - name: Ensure destination directory exists on backup server
@@ -319,27 +319,30 @@ pre_tasks:
     state: directory
     mode: '0755'
 ```
-- **delegate_to** - Выполняет задачу на backup сервере
-- Создает целевую директорию на backup сервере
+
+- Создаёт целевую директорию на backup-сервере (192.168.87.99)
+- **delegate_to** - Выполняет задачу на указанном хосте
 
 ```yaml
 - name: Check SSH connection to backup server
   ansible.builtin.ping:
   delegate_to: "{{ groups['targets'][0] }}"
   register: ssh_check
-```
-- Проверяет SSH соединение с backup сервером
-- **register** - Сохраняет результат проверки
-
-```yaml
+  
 - name: Fail if SSH check failed
   fail:
     msg: "Cannot connect to backup server via SSH"
   when: ssh_check is failed
 ```
-- Прерывает выполнение при неудачной проверке SSH
 
-#### Копирование дампов на backup сервер (маленькие файлы)
+- Проверяет SSH-соединение с backup-сервером
+- В случае ошибки прерывает выполнение
+
+### Копирование дампов на backup-сервер
+
+Копирование разделено на две задачи для файлов разного размера:
+
+#### Для маленьких файлов (<1MB)
 
 ```yaml
 - name: Sync dumps to backup server (small dumps)
@@ -366,11 +369,29 @@ pre_tasks:
   changed_when: sync_results.rc == 0 or sync_results.rc == 23
   failed_when: sync_results.rc not in [0, 23, 24, 30]
 ```
-- **selectattr('size', 'lt', 1048576)** - Фильтрует файлы меньше 1MB
-- **rsync_opts** - Опции для rsync
-- **ignore_errors** - Продолжает выполнение при ошибках
+
+#### Для больших файлов (>=1MB)
+
+Аналогичная задача, но с фильтром `selectattr('size', 'ge', 1048576)`
+
+Ключевые параметры:
+- **mode: push** - Копирование с локального хоста на удалённый
+- **rsync_opts** - Опции rsync для контроля процесса копирования
+- **private_key** - Использует SSH-ключ для аутентификации
+- **loop** с фильтром selectattr - Разделяет файлы по размеру
+- **ignore_errors: yes** - Продолжает выполнение при ошибках
 - **changed_when/failed_when** - Кастомные условия для определения состояния задачи
 
-#### Копирование дампов на backup сервер (большие файлы)
+## Особенности реализации
 
-Аналогично предыдущей задаче, но для файлов >=1MB (`selectattr('size', 'ge', 1048576)`).
+1. **Разделение по размеру файлов**: Маленькие и большие файлы копируются отдельно, что позволяет лучше контролировать процесс.
+
+2. **Гибкая обработка ошибок**: Определены допустимые коды возврата rsync (0, 23, 24, 30), которые не считаются ошибками.
+
+3. **Использование переменных**: Широко применяются факты Ansible (информация о хосте, дата) для создания уникальных путей.
+
+4. **Безопасность**: Все операции с БД выполняются от пользователя postgres.
+
+5. **Модульность**: Задачи разделены на логические блоки с проверкой промежуточных результатов.
+
+Этот плейбук обеспечивает надёжное резервное копирование PostgreSQL с детальным контролем процесса и обработкой возможных ошибок.
