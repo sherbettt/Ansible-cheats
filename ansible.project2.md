@@ -1,3 +1,5 @@
+# Ansible poject: Backup
+
 Управляющая машина `192.168.87.8`, на которую установлен semaphore.
 <br/> Управляемая машина `192.168.87.70`, на которую уже установлена БД PostgresQL 15.
 <br/> Ansible конфигурация хранится в GitLab.
@@ -242,7 +244,7 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
         use_regex: no
       register: tmp_dumps
 
-    - name: Display found dump files (paths)
+    - name: Display number of found dump files
       ansible.builtin.debug:
         msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
       loop: "{{ tmp_dumps.files }}"
@@ -292,6 +294,23 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
       changed_when: sync_results.rc == 0 or sync_results.rc == 23
       failed_when: sync_results.rc not in [0, 23, 24, 30]
 
+     # Current step uses 'Find PostgreSQL dump files in /tmp/' step
+     # Just delete dump files from 192.168.87.70
+    - name: Remove PostgreSQL dump files from /tmp/
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ tmp_dumps.files }}"
+      when: tmp_dumps.matched > 0
+      loop_control:
+        label: "{{ item.path }}"
+      register: cleanup_result
+
+    - name: Display cleanup results
+      ansible.builtin.debug:
+        msg: "Successfully removed {{ cleanup_result.results | length }} dump files"
+      when: tmp_dumps.matched > 0
+
 ```
 Предварителньо проверим:
 ```bash
@@ -304,5 +323,39 @@ ansible -i ~/GIT-projects/backup/inventory/hosts.ini targets -m ping;
 sudo ansible-playbook -C -i ~/GIT-projects/backup/inventory/hosts.ini dump_play.yml
 ```
 
+#### 6. `playbooks/del_sql.yaml` (Опционально)
 
+Данный плей нужен для удаления дампов в полуавтоматическом режиме, чтобы они не оставались на машине `192.168.87.70` именно в том случае, если что-то в основном плее пошло не так.
+```yaml
+---
+- name: Cleanup PostgreSQL dump files from /tmp/
+  hosts: pg_db
+  gather_facts: true
 
+  tasks:
+    - name: Find PostgreSQL dump files in /tmp/
+      ansible.builtin.find:
+        paths: /tmp/
+        patterns: "*.sql.gz"
+        use_regex: no
+      register: tmp_dumps
+
+    - name: Display number of found dump files
+      ansible.builtin.debug:
+        msg: "Обнаружено {{ tmp_dumps.matched }} dump файлов на удаление"
+
+    - name: Remove PostgreSQL dump files from /tmp/
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ tmp_dumps.files }}"
+      when: tmp_dumps.matched > 0
+      loop_control:
+        label: "{{ item.path }}"
+      register: cleanup_result
+
+    - name: Display cleanup results
+      ansible.builtin.debug:
+        msg: "Successfully removed {{ cleanup_result.results | length }} dump files"
+      when: tmp_dumps.matched > 0
+```
