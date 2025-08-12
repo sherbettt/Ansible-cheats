@@ -619,7 +619,10 @@ ansible dmzgateway1 -m shell -a "free -h && ps aux --sort=-%mem | head -n 5" -b
 # 4. Поиск процессов, активно использующих диск
 ansible dmzgateway1 -m shell -a "ps -eo pid,comm,args --sort=-%cpu | head -n 15" -b
 
-# 5. Проверка использования loop-устройств
+# 5. Проверка использования всех блочных устройств и loop-устройств
+ansible dmzgateway1 -m shell -a "df -h" -b
+
+# 6. Проверка использования loop-устройств
 ansible dmzgateway1 -m shell -a "losetup -a && df -h | grep loop" -b
 ```
 
