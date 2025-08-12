@@ -605,6 +605,17 @@ MiB Swap:      0,0 total,      0,0 free,      0,0 used.    945,4 avail Mem
     191 root      20   0   17228   7936   6912 S   0,0   0,8   0:00.36 systemd+
 ```
 
+🔥 **Экстренные меры (сначала)**:
+```bash
+# 1. Найти процессы-пожиратели CPU
+ansible dmzgateway1 -m shell -a "top -b -n 1 | head -n 15" -b
+
+# 2. Проверить IO wait (если >20% - проблема с диском)
+ansible dmzgateway1 -m shell -a "iostat -x 1 3" -b
+
+# 3. Проверить память
+ansible dmzgateway1 -m shell -a "free -h && ps aux --sort=-%mem | head -n 5" -b
+```
 
 
 
