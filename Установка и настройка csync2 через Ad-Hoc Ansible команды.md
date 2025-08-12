@@ -196,6 +196,7 @@ group cluster {
     key /etc/csync2/key.d/csync2.key;
     
     include /etc/keepalived/keepalived.conf;
+    include /etc/keepalived/test_sync.txt;  # для проверки синхронизации
     include /etc/network/interfaces.d/*;
     
     action {
