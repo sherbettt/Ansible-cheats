@@ -564,5 +564,54 @@ ansible gateways -m shell -a "csync2 -T"  # Проверка конфигура�
 ansible gateways -m shell -a "csync2 -xv" # Тест синхронизации
 ```
 Рекомендуется **Вариант A** (настройка через inetd), так как это стандартный подход в системах с openbsd-inetd. Это обеспечит правильную работу csync2 без конфликтов портов.
+<br/>
+<br/>
+
+
+
+
+# IOSTAT хостов
+```bash
+┌─ kirill kiko0217
+└─ ~/.ansible/infra-proj $ ansible gateways -m shell -a "uptime" -b
+dmzgateway1 | CHANGED | rc=0 >>
+ 14:59:07 up  3:36,  2 users,  load average: 18,40, 21,04, 22,14
+dmzgateway2 | CHANGED | rc=0 >>
+ 14:59:07 up  3:50,  3 users,  load average: 13,69, 10,78, 8,52
+dmzgateway3 | CHANGED | rc=0 >>
+ 14:59:07 up 4 days,  1:23,  2 users,  load average: 4,24, 4,32, 4,28
+```
+Видим прроблему на dmzgateway1. Смотрим iostat хоста.
+```bash
+┌─ kirill kiko0217
+└─ ~/.ansible/infra-proj $ ansible dmzgateway1 -m shell -a "top -b -n 1 | head -n 15" -b
+dmzgateway1 | CHANGED | rc=0 >>
+top - 14:58:45 up  3:36,  2 users,  load average: 21,85, 21,89, 22,44
+Tasks:  30 total,   1 running,  29 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0,0 us,  0,0 sy,  0,0 ni,100,0 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st 
+MiB Mem :   1024,0 total,    286,5 free,     78,6 used,    659,1 buff/cache     
+MiB Swap:      0,0 total,      0,0 free,      0,0 used.    945,4 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+      1 root      20   0  102628  12288   8960 S   0,0   1,2   0:03.78 systemd
+     56 root      20   0  135440  80884  79860 S   0,0   7,7   0:06.93 systemd+
+     73 systemd+  20   0   17908   8448   7424 S   0,0   0,8   0:00.02 systemd+
+    169 _rpc      20   0    7884   3584   3328 S   0,0   0,3   0:00.00 rpcbind
+    172 root      20   0    6612   2304   2304 S   0,0   0,2   0:00.00 cron
+    174 message+  20   0    9264   4608   4096 S   0,0   0,4   0:00.82 dbus-da+
+    180 root      20   0   29000   9472   8192 S   0,0   0,9   0:00.00 keepali+
+    191 root      20   0   17228   7936   6912 S   0,0   0,8   0:00.36 systemd+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
