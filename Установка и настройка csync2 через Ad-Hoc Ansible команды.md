@@ -182,6 +182,37 @@ ansible gateways -m shell -a "ln -sf /etc/csync2/csync2.cfg /etc/csync2.cfg"
 ansible gateways -m shell -a "mv /etc/csync2/csync2.cfg /etc/csync2.cfg"
 ```
 
+### 4 [ALT]. Создание конфигурационного файла `/etc/csync2/csync2.cfg` с помощью  jinja
+```jinja
+nossl * *;
+group cluster {
+    host {{ ansible_hostname }};
+    {% for host in groups['gateways'] %}
+    {% if host != inventory_hostname %}
+    host {{ host }};
+    {% endif %}
+    {% endfor %}
+
+    key /etc/csync2/key.d/csync2.key;
+    
+    include /etc/keepalived/keepalived.conf;
+    include /etc/network/interfaces.d/*;
+    
+    action {
+        pattern /etc/keepalived/keepalived.conf;
+        exec /usr/sbin/service keepalived restart;
+        logfile /var/log/csync2_action.log;
+    }
+}
+```
+Устанавливаем командой:
+```bash
+ansible gateways -m template -a \
+"src=roles/csync2/templates/csync2.cfg.j2 \
+dest=/etc/csync2.cfg \
+owner=root group=root mode=0644" -b
+```
+
 
 ### 5. Создание `/etc/systemd/system/csync2.service` юнита
 ```bash
