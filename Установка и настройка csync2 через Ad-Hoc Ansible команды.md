@@ -1,19 +1,19 @@
-# Установка и настройка csync2 через Ad-Hoc Ansible команды
+## 4. Установка и настройка csync2 через Ad-Hoc Ansible команды
 
-### 0. Предварительный этап
+
 Создаём **ansible.cfg** файлик:
-```cfg
+```ini
 [defaults]
 inventory = ./inventory/hosts.ini        # либо ~/.ansible/infra-proj/inventory/hosts.ini
 roles_path = ./roles
 private_key_file = ~/.ssh/id_rsa         # Путь к вашему приватному ключу
-# private_key_file = ~/.ssh/id_ed25519
+#private_key_file = ~/.ssh/id_ed25519
 host_key_checking = False                # Отключает проверку SSH-ключей хостов
 interpreter_python = /usr/bin/python3    # какой интерпретатор Python использовать на управляемых узлах.
 ```
 
-Создаём **inventory/hosts.ini** файлик:
-```cfg
+Создаём **inventory/hosts.ini** файл:
+```ini
 [gateways]
 dmzgateway1 ansible_host=192.168.87.253 ansible_user=root
 dmzgateway2 ansible_host=192.168.87.252 ansible_user=root
@@ -25,9 +25,8 @@ pmx5 ansible_host=192.168.87.20 ansible_user=root
 pmx6 ansible_host=192.168.87.6 ansible_user=root
 ```
 
-Деревой проекта:
+Дерево проекта:
 ```c
-┌─ kirill kiko0217
 └─ ~/.ansible/infra-proj $ tree
 .
 ├── ./{
@@ -56,6 +55,7 @@ pmx6 ansible_host=192.168.87.6 ansible_user=root
 ```
 
 
+
 ### 1. Проверка подключения.
 ```bash
 └─ ~/.ansible/infra-proj $ ansible gateways -m ping
@@ -78,7 +78,7 @@ ansible gateways -m shell -a "nc -zv dmzgateway2 30865"
 ansible gateways -m shell -a "nc -zv dmzgateway3 30865"
 ```
 
-### 2. Добавим записи в /etc/hosts на всех узлах и проверим
+### 2. Добавим записи в `/etc/hosts` на всех узлах и проверим
 ```bash
 ansible gateways -m blockinfile -a "path=/etc/hosts block='192.168.87.253 dmzgateway1
 192.168.87.252 dmzgateway2
@@ -90,7 +90,7 @@ ansible gateways -m shell -a "ping -c 2 dmzgateway2"
 ansible gateways -m shell -a "ping -c 2 dmzgateway3"
 ```
 
-### 2. Установка пакета csync2 на все шлюзы
+### 2. Установка пакета csync2 на все шлюзы/хосты
 ```bash
 ansible gateways -m apt -a "name=csync2 state=present update_cache=yes"
 # или:
@@ -183,40 +183,6 @@ ansible gateways -m shell -a "mv /etc/csync2/csync2.cfg /etc/csync2.cfg"
 ```
 
 
-### 4 [ALT]. Создание конфигурационного файла `/etc/csync2/csync2.cfg` с помощью jinja
-Создаём jinja файлик `roles/csync2/templates/csync2.cfg.j2`:
-```jinja
-nossl * *;
-group cluster {
-    host {{ ansible_hostname }};
-    {% for host in groups['gateways'] %}
-    {% if host != inventory_hostname %}
-    host {{ host }};
-    {% endif %}
-    {% endfor %}
-
-    key /etc/csync2/key.d/csync2.key;
-    
-    include /etc/keepalived/keepalived.conf;
-    include /etc/network/interfaces.d/*;
-    
-    action {
-        pattern /etc/keepalived/keepalived.conf;
-        exec /usr/sbin/service keepalived restart;
-        logfile /var/log/csync2_action.log;
-    }
-}
-```
-Команда применения этого файла:
-```bash
-ansible gateways -m template -a \
-"src=roles/csync2/templates/csync2.cfg.j2 \
-dest=/etc/csync2.cfg \
-owner=root group=root mode=0644" -b
-```
-
-
-
 ### 5. Создание `/etc/systemd/system/csync2.service` юнита
 ```bash
 ansible gateways -m copy -a \
@@ -235,11 +201,12 @@ RestartSec=5s
 WantedBy=multi-user.target'" \
 -b --diff
 ```
-- -m copy - используем модуль для копирования файлов
-- dest=/etc/systemd/system/csync2.service - путь назначения
-- content='...' - содержимое файла (обратите внимание на многострочный формат)
-- -b - выполнение с повышенными правами (sudo)
-- --diff - покажет различия при изменении файла
+- **-m copy** - используем модуль для копирования файлов
+- **dest=/etc/systemd/system/csync2.service** - путь назначения
+- **content='...'** - содержимое файла (обратите внимание на многострочный формат)
+- **-b** - выполнение с повышенными правами (sudo)
+- **--diff** - покажет различия при изменении файла
+
 
 т.е.
 ```ini
@@ -264,6 +231,7 @@ WantedBy=multi-user.target
 ansible gateways -m shell -a "ls -l /etc/csync2/csync2.cfg"
 ansible gateways -m shell -a "echo CSYNC2_SYSTEM_DIR=$CSYNC2_SYSTEM_DIR"
 ```
+
 
 
 
@@ -314,7 +282,34 @@ ansible gateways -m shell -a "tail -n 20 /var/log/csync2*"
 ansible gateways -m shell -a "netstat -tulpn | grep csync2"
 ```
 
-### 11. Создание SSL-сертификатов
+### 11. Настроить правила iptables в директории `/etc/iptables/`
+```bash
+# Сначала сохраним текущие правила из /etc/iptables
+ansible gateways -m shell -a "cp /etc/iptables /etc/iptables.rules.backup"
+
+# Удалим файл /etc/iptables и создадим вместо него директорию
+ansible gateways -m shell -a "rm -f /etc/iptables && mkdir -p /etc/iptables"
+
+# Добавим правило для порта 30865 и сохраним всё в /etc/iptables/rules.v4
+ansible gateways -m shell -a "iptables -A INPUT -p tcp --dport 30865 -j ACCEPT && iptables-save > /etc/iptables/rules.v4"
+
+# Восстановим NAT-правила из бэкапа
+ansible gateways -m shell -a "cat /etc/iptables.rules.backup >> /etc/iptables/rules.v4"
+
+# Проверим, что всё сохранилось правильно
+ansible gateways -m shell -a "cat /etc/iptables/rules.v4"
+
+# Перезагрузим iptables (если нужно)
+ansible gateways -m shell -a "iptables-restore < /etc/iptables/rules.v4"
+
+# Проверим, что порт 30865 открыт
+ansible gateways -m shell -a "iptables -L -n | grep 30865 || echo 'Порт не открыт'"
+```
+
+
+
+
+### 12. Создание SSL-сертификатов
 
 #### Можно руками на мастер ноде руками создать и руками расзложить по нодам:
 ```bash
@@ -344,29 +339,6 @@ ansible gateways -m shell -a "rm -f /etc/csync2/key.d/csync2.key && csync2 -k /e
 ansible gateways -m shell -a "rm -f /etc/iptables && mkdir -p /etc/iptables"
 ansible gateways -m shell -a "iptables -A INPUT -p tcp --dport 30865 -j ACCEPT && iptables-save > /etc/iptables/rules.v4"
 ```
-#### Настроить правила iptables в директории `/etc/iptables/`
-```bash
-# Сначала сохраним текущие правила из /etc/iptables
-ansible gateways -m shell -a "cp /etc/iptables /etc/iptables.rules.backup"
-
-# Удалим файл /etc/iptables и создадим вместо него директорию
-ansible gateways -m shell -a "rm -f /etc/iptables && mkdir -p /etc/iptables"
-
-# Добавим правило для порта 30865 и сохраним всё в /etc/iptables/rules.v4
-ansible gateways -m shell -a "iptables -A INPUT -p tcp --dport 30865 -j ACCEPT && iptables-save > /etc/iptables/rules.v4"
-
-# Восстановим NAT-правила из бэкапа
-ansible gateways -m shell -a "cat /etc/iptables.rules.backup >> /etc/iptables/rules.v4"
-
-# Проверим, что всё сохранилось правильно
-ansible gateways -m shell -a "cat /etc/iptables/rules.v4"
-
-# Перезагрузим iptables (если нужно)
-ansible gateways -m shell -a "iptables-restore < /etc/iptables/rules.v4"
-
-# Проверим, что порт 30865 открыт
-ansible gateways -m shell -a "iptables -L -n | grep 30865 || echo 'Порт не открыт'"
-```
 
 #### Ad-Hoc командой создаём сертификаты на всех узлах:
 ```bash
@@ -393,11 +365,13 @@ ansible gateways -m shell -a "systemctl restart csync2"
 ansible gateways -m shell -a "csync2 -xv"
 ```
 
+
+
 ```bash
 ansible gateways -m shell -a "grep host /etc/csync2/csync2.cfg"
 ```
 
-### 10. Настройка автоматической синхронизации (опционально)
+### 13. Настройка автоматической синхронизации (опционально)
 ```bash
 # Синхронизация Каждые 5 минут
 ansible gateways -m cron -a "name='csync2 sync' minute='*/5' job='/usr/sbin/csync2 -x'"
@@ -506,7 +480,7 @@ ansible gateways -m shell -a "systemctl restart csync2"
 ansible gateways -m shell -a "csync2 -T"  # Проверка конфигурации
 ansible gateways -m shell -a "csync2 -xv" # Тест синхронизации
 ```
-Рекомендую **Вариант A** (использовать xinetd), так как это стандартный подход в ALT Linux для csync2.
+Рекомендуется **Вариант A** (использовать xinetd), так как это стандартный подход в ALT Linux для csync2.
 
 --------------------------------------------------------
 ### Если openbsd-inetd (простой inetd) уже занимает порт 30865:
@@ -562,9 +536,6 @@ ansible gateways -m shell -a "systemctl restart csync2"
 ansible gateways -m shell -a "csync2 -T"  # Проверка конфигурации
 ansible gateways -m shell -a "csync2 -xv" # Тест синхронизации
 ```
-Рекомендую **Вариант A** (настройка через inetd), так как это стандартный подход в системах с openbsd-inetd. Это обеспечит правильную работу csync2 без конфликтов портов.
-
---------------------------------------------------------
+Рекомендуется **Вариант A** (настройка через inetd), так как это стандартный подход в системах с openbsd-inetd. Это обеспечит правильную работу csync2 без конфликтов портов.
 
 
-<br/>
