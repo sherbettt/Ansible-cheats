@@ -615,6 +615,12 @@ ansible dmzgateway1 -m shell -a "iostat -x 1 3" -b
 
 # 3. Проверить память
 ansible dmzgateway1 -m shell -a "free -h && ps aux --sort=-%mem | head -n 5" -b
+
+# 4. Поиск процессов, активно использующих диск
+ansible dmzgateway1 -m shell -a "ps -eo pid,comm,args --sort=-%cpu | head -n 15" -b
+
+# 5. Проверка использования loop-устройств
+ansible dmzgateway1 -m shell -a "losetup -a && df -h | grep loop" -b
 ```
 
 На основе предоставленных данных видно, что dmzgateway1 испытывает аномально высокую нагрузку (load average 18-25 при 32 CPU), при этом:
