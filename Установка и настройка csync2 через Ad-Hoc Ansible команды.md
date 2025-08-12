@@ -571,6 +571,8 @@ ansible gateways -m shell -a "csync2 -xv" # Тест синхронизации
 
 
 # IOSTAT хостов
+
+Смотрим LOAD Average загрузку хостов:
 ```bash
 ┌─ kirill kiko0217
 └─ ~/.ansible/infra-proj $ ansible gateways -m shell -a "uptime" -b
