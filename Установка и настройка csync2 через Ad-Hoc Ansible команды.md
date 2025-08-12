@@ -139,7 +139,7 @@ ansible gateways -m copy -a "src=./csync2.key dest=/etc/csync2/key.d/csync2.key 
 ```
 
 
-### 4. Создание конфигурационного файла `/etc/csync2/csync2.cfg`
+### 5. Создание конфигурационного файла `/etc/csync2/csync2.cfg`
 
 ```bash
 ansible gateways -m copy -a "content='group cluster {
@@ -182,7 +182,7 @@ ansible gateways -m shell -a "ln -sf /etc/csync2/csync2.cfg /etc/csync2.cfg"
 ansible gateways -m shell -a "mv /etc/csync2/csync2.cfg /etc/csync2.cfg"
 ```
 
-### 4 [ALT]. Создание конфигурационного файла `/etc/csync2/csync2.cfg` с помощью  jinja
+### 5 [ALT]. Создание конфигурационного файла `/etc/csync2/csync2.cfg` с помощью  jinja
 ```jinja
 nossl * *;
 group cluster {
@@ -214,7 +214,7 @@ owner=root group=root mode=0644" -b
 ```
 
 
-### 5. Создание `/etc/systemd/system/csync2.service` юнита
+### 6. Создание `/etc/systemd/system/csync2.service` юнита
 ```bash
 ansible gateways -m copy -a \
 "dest=/etc/systemd/system/csync2.service \
@@ -264,9 +264,7 @@ ansible gateways -m shell -a "echo CSYNC2_SYSTEM_DIR=$CSYNC2_SYSTEM_DIR"
 ```
 
 
-
-
-### 6. Включение и запуск службы
+### 7. Включение и запуск службы
 ```bash
 ansible gateways -m service -a "name=csync2 enabled=yes state=started"
 # или:
@@ -276,7 +274,7 @@ ansible gateways -m shell -a "systemctl enable csync2 --now"
 ansible gateways -m shell -a "systemctl status csync2"
 ```
 
-### 7. Инициализация синхронизации
+### 8. Инициализация синхронизации
 ```bash
 ansible dmzgateway1 -m shell -a "csync2 -xv"
 ansible dmzgateway1 -m shell -a "csync2 -N 192.168.87.251 -xvv"
@@ -284,7 +282,7 @@ ansible dmzgateway1 -m shell -a "csync2 -N 192.168.87.251 -xvv"
 ansible dmzgateway1 -i hosts -u root -k -m shell -a "csync2 -xv"
 ```
 
-### 8. Тест синхронизации
+### 9. Тест синхронизации
 ```bash
 # Создаем тестовый файл
 ansible dmzgateway1 -m copy -a "content='test sync' dest=/etc/keepalived/test_sync.txt"
@@ -296,7 +294,7 @@ ansible dmzgateway1 -m shell -a "csync2 -x"
 ansible gateways -m shell -a "ls -la /etc/keepalived/ | grep test_sync"
 ```
 
-### 9. Проверка статуса
+### 10. Проверка статуса
 ```bash
 ansible gateways -m shell -a "systemctl status csync2"
 ansible gateways -m shell -a "ls -la /etc/csync2"
@@ -304,7 +302,7 @@ ansible gateways -m shell -a "ls -la /etc/csync2"
 ansible gateways -i hosts -u root -k -m shell -a "systemctl status csync2"
 ```
 
-### 10. Дополнительные проверки
+### 11. Дополнительные проверки
 ```bash
 # Проверка логов
 ansible gateways -m shell -a "tail -n 20 /var/log/csync2*"
@@ -313,7 +311,7 @@ ansible gateways -m shell -a "tail -n 20 /var/log/csync2*"
 ansible gateways -m shell -a "netstat -tulpn | grep csync2"
 ```
 
-### 11. Настроить правила iptables в директории `/etc/iptables/`
+### 12. Настроить правила iptables в директории `/etc/iptables/`
 ```bash
 # Сначала сохраним текущие правила из /etc/iptables
 ansible gateways -m shell -a "cp /etc/iptables /etc/iptables.rules.backup"
@@ -339,8 +337,7 @@ ansible gateways -m shell -a "iptables -L -n | grep 30865 || echo 'Порт не
 
 
 
-
-### 12. Создание SSL-сертификатов
+### 13. Создание SSL-сертификатов
 
 #### Можно руками на мастер ноде руками создать и руками расзложить по нодам:
 ```bash
@@ -395,14 +392,12 @@ ansible gateways -m copy -a "content='group cluster {
 ansible gateways -m shell -a "systemctl restart csync2"
 ansible gateways -m shell -a "csync2 -xv"
 ```
-
-
-
 ```bash
 ansible gateways -m shell -a "grep host /etc/csync2/csync2.cfg"
 ```
 
-### 13. Настройка автоматической синхронизации (опционально)
+
+### 14. Настройка автоматической синхронизации (опционально)
 ```bash
 # Синхронизация Каждые 5 минут
 ansible gateways -m cron -a "name='csync2 sync' minute='*/5' job='/usr/sbin/csync2 -x'"
