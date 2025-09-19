@@ -123,6 +123,12 @@ ansible -i inventory/hosts.ini your_host -m setup
 
 # Конкретная переменная
 ansible -i inventory/hosts.ini your_host -m debug -a "var=ansible_distribution"
+ansible -i inventory/hosts.ini your_host -m debug -a "var=ansible_distribution,ansible_date_time.hour"
+ansible -i inventory/hosts.ini your_host -m debug -a "var=ansible_distribution var=ansible_date_time.hour"
+# Использование msg для красивого вывода
+ansible -i inventory/hosts.ini your_host -m debug -a "msg='Distribution: {{ ansible_distribution }}, Hour: {{ ansible_date_time.hour }}'"
+# С использованием jq для обработки вывода (если нужно)
+ansible -i inventory/hosts.ini your_host -m setup -a "filter=ansible_distribution ansible_date_time" | jq '.ansible_facts'
 
 # Все inventory переменные
 ansible-inventory -i inventory/hosts.ini --list --yaml
