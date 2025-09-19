@@ -12,7 +12,7 @@
 
 **Для Semaphore переменных окружения:**
 - 📖 [Semaphore Environment Variables](https://docs.ansible-semaphore.com/administration-guide/environment-variables) - официальная документация
-- 📖 [Semaphore CI/CD Variables](https://docs.ansible-semaphore.com/user-guide/projects/variables) - переменные в проектах
+- 📖 [Semaphore CI/CD Variables](https://docs.semaphoreui.com/user-guide/environment/) - переменные в проектах
 
 ## Практическая шпаргалка по переменным:
 
