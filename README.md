@@ -78,9 +78,15 @@
 {{ lookup('env', 'DB_PASSWORD') }}
 
 # Системные переменные
-{{ lookup('env', 'HOME') }}
-{{ lookup('env', 'PATH') }}
-{{ lookup('env', 'USER') }}
+  tasks:
+    - name: System variables
+      debug:
+        msg: 
+        - "{{ lookup('env', 'PWD') }}"
+        - "{{ lookup('env', 'HOME') }}"
+        - "{{ lookup('env', 'PATH') }}"
+        - "{{ lookup('env', 'LC_CTYPE') }}"
+        - "{{ lookup('env', 'USER') }}"
 ```
 
 ### **5. Специальные переменные Ansible**
