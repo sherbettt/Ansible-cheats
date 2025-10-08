@@ -164,13 +164,23 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
 ```yaml
 ---
 - name: To make a backup and dump from pg_db
-  hosts: pg_db
+  hosts: all
   gather_facts: true
 
   # vars_files:
   #   - ../../group_vars/secret.yml
 
+  vars:
+    # Количество бекапов для хранения (можно переопределить через переменную окружения)
+    backup_retention_days: "{{ (lookup('env', 'BACKUP_RETENTION_DAYS') | default('14', true)) | int }}"
+    #postgresql_password: "{{ lookup('file', playbook_dir + '/../group_vars/db_password.txt') }}"
+
   pre_tasks:
+  # задаём время для папки на backup машине
+    - name: Get current timestamp from backup machine
+      set_fact:
+        current_timestamp: "{{ lookup('pipe', 'date +%Y-%m-%d_%H-%M-%S') }}"
+
     # py installation
     - name: Install python-psycopg2
       ansible.builtin.apt:
@@ -178,7 +188,10 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
         state: present
       tags:
         - install
-      when: ((ansible_distribution == "Debian" and ansible_distribution_major_version == "10") or ansible_distribution == "Astra Linux")
+      when: >
+        (ansible_distribution == "Debian" and ansible_distribution_major_version == "10") or
+        ansible_distribution == "Astra Linux" or
+        ansible_distribution == "redos"
 
     - name: Install python3-psycopg2
       ansible.builtin.apt:
@@ -186,61 +199,189 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
         state: present
       tags:
         - install
-      when: ansible_distribution == "Debian" and (ansible_distribution_major_version == "11" or ansible_distribution_major_version == "12")
+      when: >
+        ansible_distribution == "Debian" and
+        ansible_distribution_major_version in ["8", "11", "12"]
 
+    - name: Install rsync
+      ansible.builtin.apt:
+        name: rsync
+        state: present
 
-    
   tasks:
+    - name: System variables
+      debug:
+        msg:
+        - "{{ lookup('env', 'PWD') }}"
+        - "{{ lookup('env', 'HOME') }}"
+        - "{{ lookup('env', 'PATH') }}"
+        - "{{ lookup('env', 'LC_CTYPE') }}"
+        - "{{ lookup('env', 'USER') }}"
+        - "{{ ansible_play_hosts }}"
+        - "{{ inventory_dir }}"
+        - "{{ playbook_dir }}"
+
     # Create storage directory
-       # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=inventory_hostname'
-       # ansible -i ~/GIT-projects/backup/inventory/hosts.ini pg_db -m debug -a 'var=ansible_date_time.date'
-         # check https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_vars_facts.html
     - name: Create storage directory using current date
       ansible.builtin.file:
         path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
         state: directory
         mode: '0755'
 
-    # Get database info
-        # check https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_info_module.html
-        # field filter
-    - name: Gather information about PostgreSQL databases only from servers
+
+# Если postgresql_host не определен в inventory:vars хоста, то будет выполнено подключение через pgsql.sock
+# пример inventory без postgresql_host
+#
+# [somehost]
+# 177.177.177.177 ansible_user=root
+#
+
+    - name: Gather information about PostgreSQL databases only from servers (local socket)
       become: true
       become_user: postgres
       community.postgresql.postgresql_info:
-        filter: databases
+        filter: databases, settings
       register: db_info
-      changed_when: false
+      when: postgresql_host is not defined      # Локальное подключение через socket
+
+
+# Если postgresql_host определен в inventory:vars хоста, то будет выполнено подключение к нему
+# пример inventory c postgresql_host
+#
+# [somehost]
+# 177.177.177.177 ansible_user=root
+# [somehost:vars]
+# postgresql_host = "192.168.1.10"
+# postgresql_port = 5432
+# postgresql_user = postgres
+#
+# запись идет в перемменную с другим именем, db_info_with_host, а затем значение этой переменной идет в fact db_info,
+# чтобы дальше в рамках playbook можно было выполнять проверки и крутить их в loop
+
+
+    - name: Gather information about PostgreSQL databases only from servers (remote host)
+      become: true
+      become_user: postgres
+      community.postgresql.postgresql_info:
+        filter: databases,settings
+        login_host: "{{ postgresql_host }}"
+        login_port: "{{ postgresql_port | default(5432) }}"
+        login_user: "{{ postgresql_user | default('postgres') }}"
+        login_password: "{{ postgresql_password | default(omit) }}"
+      register: db_info_with_host
+      when: postgresql_host is defined          # Сетевое подключение
+
+    - name: Debug db_info structure
+      ansible.builtin.debug:
+        var: db_info
+      when: postgresql_host is not defined
+
+    - name: Debug db_info_with_host structure
+      ansible.builtin.debug:
+        var: db_info_with_host
+      when: postgresql_host is defined
+
+    - name: Extract PostgreSQL major version from db_info_with_host
+      set_fact:
+        pg_major_version: "{{ db_info_with_host.postgresql.server_version | regex_search('\\d+') | int }}"
+      when: 
+        - postgresql_host is defined
+        - db_info_with_host.postgresql.server_version is defined
+
+    - name: Extract PostgreSQL major version from db_info
+      set_fact:
+        pg_major_version: "{{ db_info.postgresql.server_version | regex_search('\\d+') | int }}"
+      when: 
+        - postgresql_host is not defined
+        - db_info.postgresql.server_version is defined
+
+    - name: Set safe default PostgreSQL version
+      set_fact:
+        pg_major_version: 15
+      when: pg_major_version is not defined
+
+    - name: set db_info fact
+      set_fact:
+        db_info: "{{ db_info_with_host }}"
+      when: postgresql_host is defined
+
+    - name: Display/Debug info (db_info)
+      ansible.builtin.debug:
+        var: db_info
+      when: db_info is defined
 
     - name: Display/Debug info (db_info.databases.postgres.extensions.plpgsql)
       ansible.builtin.debug:
         var: db_info.databases.postgres.extensions.plpgsql
+      when: db_info is defined
 
-    - name: Display/Debug all database info (db_info.databases)
+    - name: Display PostgreSQL version on remote host
       ansible.builtin.debug:
-        var: db_info.databases
+        msg: "PostgreSQL major version: {{ pg_major_version }}"
+      when: pg_major_version is defined
+
+
 
     # Create DB dump
-        # Check https://docs.ansible.com/ansible/latest/collections/ansible/builtin/find_module.html#return-values
-    - name: Dump an existing database to a file (with compression)
+    - name: Dump an existing database to a file (with compression) [remote connection]
       become: true
       become_method: su
       become_user: postgres
       community.postgresql.postgresql_db:
-        name: "{{ item }}"  # Просто используем сам элемент, который является именем БД
+        login_host: "{{ postgresql_host }}"
+        login_port: "{{ postgresql_port | default(5432) }}"
+        login_user: "{{ postgresql_user | default('postgres') }}"
+        login_password: "{{ postgresql_password | default(omit) }}"
+        name: "{{ item }}"                                    # Просто используем сам элемент, который является именем БД
         state: dump
-        target: "/tmp/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
-      loop: "{{ db_info.databases.keys() }}"  # Проходим по ключам словаря
-      when: 
-        - db_info.databases | length > 0    # Только когда db_info.databases существует
+        #target: "/tmp/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+        target: "/tmp/{{ item }}-{{ current_timestamp }}.sql.gz"
+        dump_extra_args: "{{ '--no-synchronized-snapshots' if pg_major_version is defined and pg_major_version < 15 else '' }}"
+      loop: "{{ db_info.databases.keys() }}"                            # Проходим по ключам словаря
+      when:
+        - db_info.databases | length > 0                          # Только когда db_info.databases существует
+        - item not in ['postgres','template1','template2']        # Фильтрация баз данных
+        - postgresql_host is defined
+      #ignore_errors: yes
+      register: dump_state1
       loop_control:
         label: "{{ item }}"
 
+
+    - name: Dump an existing database to a file (with compression) [local socket]
+      become: true
+      become_method: su
+      become_user: postgres
+      community.postgresql.postgresql_db:
+#        login_host: "{{ postgresql_host }}"
+#        login_port: "{{ postgresql_port }}"
+#        login_user: "{{ postgresql_user }}"
+        #login_password: "{{ postgresql_password }}"
+        name: "{{ item }}"                                    # Просто используем сам элемент, который является именем БД
+        state: dump
+        target: "/tmp/{{ item }}-{{ current_timestamp }}.sql.gz"
+        dump_extra_args: "{{ '--no-synchronized-snapshots' if pg_major_version is defined and pg_major_version < 15 else '' }}"
+      loop: "{{ db_info.databases.keys() }}"                            # Проходим по ключам словаря
+      when:
+        - db_info.databases | length > 0                          # Только когда db_info.databases существует
+        - item not in ['postgres','template1','template2']        # Фильтрация баз данных
+        - postgresql_host is not defined
+      #ignore_errors: yes
+      register: dump_state2
+      loop_control:
+        label: "{{ item }}"
+
+
     # Check created dump files
+            #Модуль find возвращает список файлов, где каждый item содержит:
+            #item.path - полный путь к файлу (например /tmp/mydb-2024-09-28_14-30-25.sql.gz)
+            #item.size - размер файла
+            #item.mtime - время модификации  и другие атрибуты
     - name: Find PostgreSQL dump files in /tmp/
       ansible.builtin.find:
         paths: /tmp/
         patterns: "*.sql.gz"
+        #patterns: "*-{{ current_timestamp }}.sql.gz"
         use_regex: no
       tags: fdump
       register: tmp_dumps
@@ -250,52 +391,43 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
         msg: "File path: {{ item.path }}, Size: {{ item.size }} bytes, Cred: {{ item.mode }}"
       tags: fdump
       loop: "{{ tmp_dumps.files }}"
-      when: tmp_dumps.matched > 0    # Выполнять только если файлы найдены
+      when: tmp_dumps.matched > 0  # Выполнять только если файлы найдены
 
     - name: Display number of found dump files
       ansible.builtin.debug:
         msg: "кол-во выводимых в /tmp/ *.sql.gz: {{ tmp_dumps.matched }}"
-#        var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
+        #var: tmp_dumps.matched        # кол-во выводимых *.sql.gz
       tags: fdump
 
 
     - name: Ensure destination directory exists on backup server
       delegate_to: 192.168.87.99
       ansible.builtin.file:
-        path: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+        #path: "/usr/local/runtel/storage_files/telecoms/{{ inventory_hostname }}/"
+        #path: "/usr/local/runtel/storage_files/telecoms/{{ inventory_hostname }}/{{ ansible_date_time.date }}"
+        path: "/usr/local/runtel/storage_files/telecoms/{{ inventory_hostname }}/{{ current_timestamp.split('_')[0] }}"  # Берем только дату из метки
         state: directory
         mode: '0755'
 
-    - name: Check SSH connection to backup server
-      ansible.builtin.ping:
-      delegate_to: "{{ groups['targets'][0] }}"
-      register: ssh_check
-      
-    - name: Fail if SSH check failed
-      fail:
-        msg: "Cannot connect to backup server via SSH"
-      when: ssh_check is failed
-
     - name: Sync dumps to backup server
+      delegate_to: 192.168.87.99
       ansible.posix.synchronize:
-        mode: push
+        mode: pull
         src: "{{ item.path }}"
-#        dest: "{{ groups['targets'][0] }}:/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
-        dest: "/usr/local/runtel/storage_files/telecoms/runtel.org/{{ inventory_hostname }}/{{ ansible_date_time.date }}/"
+        dest: "/usr/local/runtel/storage_files/telecoms/{{ inventory_hostname }}/{{ current_timestamp.split('_')[0] }}/"  # Только дата для папки
+        #dest: "/usr/local/runtel/storage_files/telecoms/{{ inventory_hostname }}/{{ ansible_date_time.date }}-{{ ansible_date_time.time | replace(':', '-') }}/"
         rsync_opts:
           - "--perms"
           - "--verbose"
-        private_key: "~/.ssh/id_rsa"  # Укажите путь к ключу при необходимости
-        archive: no                   # Отключаем автоматические опции (-rlptgoD)
+        archive: no
         checksum: yes
         compress: yes
-      delegate_to: "{{ groups['targets'][0] }}"
       loop: "{{ tmp_dumps.files }}"
-      when: tmp_dumps.matched > 0 and ssh_check is success
+      when: tmp_dumps.matched > 0
       register: sync_results
-      ignore_errors: yes
       changed_when: sync_results.rc == 0 or sync_results.rc == 23
       failed_when: sync_results.rc not in [0, 23, 24, 30]
+      tags: backup
 
      # Current step uses 'Find PostgreSQL dump files in /tmp/' step
      # Just delete dump files from 192.168.87.70
@@ -316,6 +448,47 @@ ssh root@192.168.87.99 "cat /usr/local/runtel/storage_files/telecoms/runtel.org/
       tags: fdump
       when: tmp_dumps.matched > 0
 
+    # Ротация бекапов на сервере 192.168.87.99
+    - name: Find all backup directories for current host
+      delegate_to: 192.168.87.99
+      ansible.builtin.find:
+        paths: "/usr/local/runtel/storage_files/telecoms/{{ inventory_hostname }}/"
+        patterns: "*"
+        file_type: directory
+        use_regex: no
+      register: backup_dirs
+      tags: rotation
+
+    - name: Sort backup directories by modification time (newest first)
+      delegate_to: 192.168.87.99
+      ansible.builtin.set_fact:
+        sorted_backup_dirs: "{{ backup_dirs.files | sort(attribute='mtime', reverse=true) }}"
+      tags: rotation
+
+    - name: Display backup retention policy
+      ansible.builtin.debug:
+        msg: "Save {{ backup_retention_days }} backups. found {{ sorted_backup_dirs | length }} directories"
+      tags: rotation
+
+    - name: Remove old backup directories
+      delegate_to: 192.168.87.99
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ sorted_backup_dirs[backup_retention_days|int:] }}"
+      when:
+        - sorted_backup_dirs | length > (backup_retention_days | int)
+        - backup_retention_days | int > 0
+      loop_control:
+        label: "{{ item.path }}"
+      register: rotation_result
+      tags: rotation
+
+    - name: Display rotation results
+      ansible.builtin.debug:
+        msg: "Removed {{ rotation_result.results | length }} old backup directories"
+      when: rotation_result is defined and rotation_result.results is defined
+      tags: rotation
 ```
 Предварителньо проверим:
 ```bash
