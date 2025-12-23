@@ -75,6 +75,7 @@ ansible all -m ping
 # Установка отдельных коллекций
 ansible-galaxy collection install community.general  # Основные модули
 ansible-galaxy collection install ansible.posix      # POSIX-системы
+ansible-galaxy collection install --upgrade ansible.posix ansible.utils
 
 # ИЛИ создайте requirements.yml и установите всё
 cat > requirements.yml << 'EOF'
