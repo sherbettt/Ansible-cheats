@@ -38,6 +38,12 @@ host_key_checking = False
 
 # Указываем python интерпретатор
 interpreter_python = /usr/bin/python3
+
+# для поиска ролей:
+roles_path = /etc/ansible/roles:~/.ansible/roles:/usr/share/ansible/roles
+
+# Опционально: если хотите искать роли ещё и в текущем каталоге
+# roles_path = ./roles:/etc/ansible/roles:~/.ansible/roles:/usr/share/ansible/roles
 ```
 
 ## 3.  **Настроили inventory-файл**
