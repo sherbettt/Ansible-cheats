@@ -7,6 +7,18 @@ sudo mkdir -p /etc/ansible
 
 # Создали inventory-файл (список хостов)
 sudo mcedit /etc/ansible/hosts
+
+# Создать каталог для глобальных ролей
+sudo mkdir -p /etc/ansible/roles
+
+# Установить роль глобально (доступна всем)
+sudo ansible-galaxy role install geerlingguy.nginx -p /etc/ansible/roles/
+
+# Или создать свою роль вручную
+sudo mkdir -p /etc/ansible/roles/my-role/{defaults,tasks,templates,files,handlers,vars,meta}
+
+# Проверить доступные роли (включая системные)
+ansible-galaxy role list
 ```
 
 ## 2.  **Создали конфигурационный файл**
