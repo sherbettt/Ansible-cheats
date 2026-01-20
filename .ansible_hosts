@@ -1,3 +1,11 @@
+Пример файла с хотсами для Ansible.
+
+Файл требуется созлать вручную, и он может располагаться в:
+- `/etc/ansible/hosts` ;
+- `/usr/`
+
+
+```ini
 ##==============
 #[jenkins-clone]
 #192.168.87.11
@@ -247,3 +255,7 @@ ansible_ssh_private_key_file=~/.ssh/id_ed25519
 #postgresql_host="10.178.178.2"
 #ansible_postgresql_pgpass_file="/var/lib/postgresql/.pgpass"
 #ansible_python_interpreter=/usr/bin/python3
+```
+
+
+
